@@ -39,6 +39,7 @@ namespace Database4Net.Services
             catch (Exception e)
             {
                 Loger.Error(e);
+                Loger.Debug($"文件操作有误：文件路径 = {filePath}");
             }
             finally
             {

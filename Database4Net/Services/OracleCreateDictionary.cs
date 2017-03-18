@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -29,29 +28,35 @@ namespace Database4Net.Services
             _path = path;
         }
         /// <summary>
-        /// 程序启动
+        /// 进度计数
         /// </summary>
-        public int Start()
+        private int _progressCount = 0;
+        /// <summary>
+        /// 启动
+        /// </summary>
+        /// <param name="action">进度条委托</param>
+        /// <returns>创建字典表数量</returns>
+        public int Start(Action<int, int> action)
         {
             try
             {
                 var connectionString = ConfigurationManager.ConnectionStrings["OracleConnection"].ConnectionString;
                 using (var db = new OracleConnection { ConnectionString = connectionString })
                 {
+                    var database = string.IsNullOrEmpty(db.Database) ? Regex.Match(connectionString, @"User Id=([^;]+)").Groups[1].Value : db.Database;
                     var sql = "select table_name TableName,comments TableComment from user_tab_comments order by table_name";
                     var tables = db.Query<Table>(sql).ToArray();
+                    action(_progressCount / 2, tables.Length);
                     foreach (var table in tables)
                     {
                         sql = $"select a.column_name ColumnName,a.data_type DataType,a.data_length DataLength,a.data_precision DataPrecision,a.data_scale DataScale,a.nullable Nullable,a.data_default DataDefault,b.comments Comments,d.constraint_type ConstraintType from user_tab_columns a left join user_col_comments b on a.table_name = b.table_name and a.column_name = b.column_name left join user_cons_columns c on a.table_name = c.table_name and a.column_name = c.column_name left join user_constraints d on c.constraint_name = d.constraint_name where a.table_name = '{table.TableName}' order by column_id";
-                        table.TableColumns = db.Query<TableColumn>(sql).ToArray();
+                        table.TableColumns = db.Query<TableColumn>(sql).Distinct(new TableColumnNoComparer()).ToArray();
                         foreach (var colum in table.TableColumns)
                         {
                             colum.ConstraintType = ModelConvertTool.ConvertOracleConstraintType(colum.ConstraintType);
                         }
-                    }
-                    if (db.State == ConnectionState.Open)
-                    {
-                        db.Close();
+                        _progressCount++;
+                        action(_progressCount / 2, tables.Length);
                     }
                     db.Dispose();
                     #region 设置路径           
@@ -59,9 +64,13 @@ namespace Database4Net.Services
                     {
                         _path = AppDomain.CurrentDomain.BaseDirectory;
                     }
-                    _path = Path.Combine(_path, $"{(string.IsNullOrEmpty(db.Database) ? Regex.Match(connectionString, @"User Id=([^;]+)").Groups[1].Value.ToUpper() : db.Database)}.xlsx");
+                    _path = Path.Combine(_path, $"{database}_orcl.xlsx");
                     #endregion
-                    return CreateDictionary(_path, tables);
+                    return CreateDictionary(_path, tables, () =>
+                    {
+                        _progressCount++;
+                        action(_progressCount / 2, tables.Length);
+                    });
                 }
             }
             catch (Exception ex)

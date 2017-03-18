@@ -75,108 +75,103 @@ namespace Database4Net
         private void btnCreateModel_Click(object sender, EventArgs e)
         {
             btnCreateModel.Enabled = false;
-            try
+            switch (cboDatabaseType.SelectedIndex)
             {
-                switch (cboDatabaseType.SelectedIndex)
-                {
-                    case 0:
+                case 0:
+                    {
+                        try
                         {
-                            try
+                            SetMySqlConnection();
+                            var item = new MySqlCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
+                            lblCreateModel.Visible = true;
+                            prgCreateModel.Visible = true;
+                            prgCreateModel.Value = 0;
+                            var count = item.Start((x, y) =>
                             {
-                                SetMySqlConnection();
-                                var item = new MySqlCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
-                                lblCreateModel.Visible = true;
-                                prgCreateModel.Visible = true;
-                                prgCreateModel.Value = 0;
-                                var count = item.Start((x, y) =>
+                                prgCreateModel.Maximum = y;
+                                prgCreateModel.Value = x;
+                                SetPos(x);
+                            });
+                            lblCreateModel.Text = @"100%";
+                            MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
+                        }
+                        catch (Exception ex)
+                        {
+                            Loger.Error(ex);
+                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
+                        }
+                        finally
+                        {
+                            lblCreateModel.Visible = false;
+                            prgCreateModel.Visible = false;
+                            lblCreateModel.Text = string.Empty;
+                        }
+                    }
+                    break;
+                case 1:
+                    {
+                        try
+                        {
+                            SetMsSqlConnection();
+                            var item = new MsSqlCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
+                            lblCreateModel.Visible = true;
+                            prgCreateModel.Visible = true;
+                            prgCreateModel.Value = 0;
+                            var count = item.Start((x, y) =>
                                 {
                                     prgCreateModel.Maximum = y;
                                     prgCreateModel.Value = x;
                                     SetPos(x);
-                                });
-                                MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
-                            }
-                            catch (Exception ex)
-                            {
-                                Loger.Error(ex);
-                                MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
-                            }
-                            finally
-                            {
-                                lblCreateModel.Visible = false;
-                                prgCreateModel.Visible = false;
-                                lblCreateModel.Text = string.Empty;
-                            }
+                                }
+                            );
+                            lblCreateModel.Text = @"100%";
+                            MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
                         }
-                        break;
-                    case 1:
+                        catch (Exception ex)
                         {
-                            try
-                            {
-                                SetMsSqlConnection();
-                                var item = new MsSqlCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
-                                lblCreateModel.Visible = true;
-                                prgCreateModel.Visible = true;
-                                prgCreateModel.Value = 0;
-                                var count = item.Start((x, y) =>
-                                    {
-                                        prgCreateModel.Maximum = y;
-                                        prgCreateModel.Value = x;
-                                        SetPos(x);
-                                    }
-                                );
-                                MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
-                            }
-                            catch (Exception ex)
-                            {
-                                Loger.Error(ex);
-                                MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
-                            }
-                            finally
-                            {
-                                lblCreateModel.Visible = false;
-                                prgCreateModel.Visible = false;
-                                lblCreateModel.Text = string.Empty;
-                            }
+                            Loger.Error(ex);
+                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
                         }
-                        break;
-                    case 2:
+                        finally
                         {
-                            try
-                            {
-                                SetOracleConnection();
-                                var item = new OracleCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
-                                lblCreateModel.Visible = true;
-                                prgCreateModel.Visible = true;
-                                prgCreateModel.Value = 0;
-                                var count = item.Start((x, y) =>
-                                    {
-                                        prgCreateModel.Maximum = y;
-                                        prgCreateModel.Value = x;
-                                        SetPos(x);
-                                    }
-                                );
-                                lblCreateModel.Text = @"100%";
-                                MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
-                            }
-                            catch (Exception ex)
-                            {
-                                Loger.Error(ex);
-                                MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
-                            }
-                            finally
-                            {
-                                lblCreateModel.Visible = false;
-                                prgCreateModel.Visible = false;
-                                lblCreateModel.Text = string.Empty;
-                            }
+                            lblCreateModel.Visible = false;
+                            prgCreateModel.Visible = false;
+                            lblCreateModel.Text = string.Empty;
                         }
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                Loger.Error(ex);
+                    }
+                    break;
+                case 2:
+                    {
+                        try
+                        {
+                            SetOracleConnection();
+                            var item = new OracleCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
+                            lblCreateModel.Visible = true;
+                            prgCreateModel.Visible = true;
+                            prgCreateModel.Value = 0;
+                            var count = item.Start((x, y) =>
+                                {
+                                    prgCreateModel.Maximum = y;
+                                    prgCreateModel.Value = x;
+                                    SetPos(x);
+                                }
+                            );
+                            lblCreateModel.Text = @"100%";
+                            MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
+                        }
+                        catch (Exception ex)
+                        {
+                            Loger.Error(ex);
+                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
+                        }
+                        finally
+                        {
+                            lblCreateModel.Visible = false;
+                            prgCreateModel.Visible = false;
+                            lblCreateModel.Text = string.Empty;
+                        }
+                    }
+                    break;
             }
             btnCreateModel.Enabled = true;
         }
@@ -189,39 +184,101 @@ namespace Database4Net
         private void btnCreateDictionary_Click(object sender, EventArgs e)
         {
             btnCreateDictionary.Enabled = false;
-            try
+            switch (cboDatabaseType.SelectedIndex)
             {
-                switch (cboDatabaseType.SelectedIndex)
-                {
-                    case 0:
+                case 0:
+                    {
+                        try
                         {
                             SetMySqlConnection();
                             var item = new MySqlCreateDictionary(ConfigurationManager.AppSettings["FilePath"]);
-                            var count = item.Start();
+                            lblCreateModel.Visible = true;
+                            prgCreateModel.Visible = true;
+                            prgCreateModel.Value = 0;
+                            var count = item.Start((x, y) =>
+                            {
+                                prgCreateModel.Maximum = y;
+                                prgCreateModel.Value = x;
+                                SetPos(x);
+                            });
+                            lblCreateModel.Text = @"100%";
                             MessageBox.Show(count > 0 ? "操作成功！" : "操作失败，详细异常信息请查看错误日志！");
                         }
-                        break;
-                    case 1:
+                        catch (Exception ex)
+                        {
+                            Loger.Error(ex);
+                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
+                        }
+                        finally
+                        {
+                            lblCreateModel.Visible = false;
+                            prgCreateModel.Visible = false;
+                            lblCreateModel.Text = string.Empty;
+                        }
+                    }
+                    break;
+                case 1:
+                    {
+                        try
                         {
                             SetMsSqlConnection();
                             var item = new MsSqlCreateDictionary(ConfigurationManager.AppSettings["FilePath"]);
-                            var count = item.Start();
+                            lblCreateModel.Visible = true;
+                            prgCreateModel.Visible = true;
+                            prgCreateModel.Value = 0;
+                            var count = item.Start((x, y) =>
+                            {
+                                prgCreateModel.Maximum = y;
+                                prgCreateModel.Value = x;
+                                SetPos(x);
+                            });
+                            lblCreateModel.Text = @"100%";
                             MessageBox.Show(count > 0 ? "操作成功！" : "操作失败，详细异常信息请查看错误日志！");
                         }
-                        break;
-                    case 2:
+                        catch (Exception ex)
+                        {
+                            Loger.Error(ex);
+                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
+                        }
+                        finally
+                        {
+                            lblCreateModel.Visible = false;
+                            prgCreateModel.Visible = false;
+                            lblCreateModel.Text = string.Empty;
+                        }
+                    }
+                    break;
+                case 2:
+                    {
+                        try
                         {
                             SetOracleConnection();
                             var item = new OracleCreateDictionary(ConfigurationManager.AppSettings["FilePath"]);
-                            var count = item.Start();
+                            lblCreateModel.Visible = true;
+                            prgCreateModel.Visible = true;
+                            prgCreateModel.Value = 0;
+                            var count = item.Start((x, y) =>
+                            {
+                                prgCreateModel.Maximum = y;
+                                prgCreateModel.Value = x;
+                                SetPos(x);
+                            });
+                            lblCreateModel.Text = @"100%";
                             MessageBox.Show(count > 0 ? "操作成功！" : "操作失败，详细异常信息请查看错误日志！");
                         }
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                Loger.Error(ex);
+                        catch (Exception ex)
+                        {
+                            Loger.Error(ex);
+                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
+                        }
+                        finally
+                        {
+                            lblCreateModel.Visible = false;
+                            prgCreateModel.Visible = false;
+                            lblCreateModel.Text = string.Empty;
+                        }
+                    }
+                    break;
             }
             btnCreateDictionary.Enabled = true;
         }

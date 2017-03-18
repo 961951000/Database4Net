@@ -6,6 +6,7 @@ using Database4Net.Models;
 using Database4Net.Util;
 using Microsoft.Office.Interop.Excel;
 using System.IO;
+using Action = System.Action;
 
 namespace Database4Net.Services
 {
@@ -16,8 +17,9 @@ namespace Database4Net.Services
         /// </summary>
         /// <param name="path">文件输出路径</param>
         /// <param name="tables">字典表</param>
+        /// <param name="action">进度条委托</param>
         /// <returns>创建数据字典表数量</returns>
-        protected int CreateDictionary(string path, Table[] tables)
+        protected int CreateDictionary(string path, Table[] tables, Action action)
         {
             Application app = null;
             Workbook workBook = null;
@@ -26,7 +28,7 @@ namespace Database4Net.Services
             {
                 app = new Application()
                 {
-                    Visible = true,
+                    Visible = false,
                     DisplayAlerts = false
                 };
                 app.Workbooks.Add(true);
@@ -63,14 +65,7 @@ namespace Database4Net.Services
                         }
                         for (var k = 0; k < fields.Length; k++)
                         {
-                            if (properties[j].Name != "ConstraintType")
-                            {
-                                sheet.Cells[k + 5, j + 1] = type.GetProperty(properties[j].Name).GetValue(fields[k], null);
-                            }
-                            else
-                            {
-                                sheet.Cells[k + 5, j + 1] = type.GetProperty(properties[j].Name).GetValue(fields[k], null);
-                            }
+                            sheet.Cells[k + 5, j + 1] = type.GetProperty(properties[j].Name).GetValue(fields[k], null);
                         }
                     }
                     worksheet.Cells[i + 3, 1] = i + 1;
@@ -99,6 +94,7 @@ namespace Database4Net.Services
                     range = sheet.Range[sheet.Cells[3, 1], sheet.Cells[3, properties.Length]];//选取单元格
                     range.Merge(Missing.Value);
                     #endregion
+                    action();
                 }
                 #region  汇总表样式             
                 range = worksheet.Range[worksheet.Cells[1, 1], worksheet.Cells[tables.Length + 2, 5]];//选取单元格
@@ -122,6 +118,9 @@ namespace Database4Net.Services
             catch (Exception ex)
             {
                 Loger.Error(ex);
+                Loger.Debug($"文件操作有误：文件路径 = {path}");
+                Loger.Debug($"tables.Length={tables.Length}");
+                Loger.Debug($"文件操作有误：文件路径 = {path}");
             }
             finally
             {

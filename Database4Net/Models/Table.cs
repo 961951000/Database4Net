@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Database4Net.Models
 {
@@ -70,5 +72,21 @@ namespace Database4Net.Models
         /// </summary>
         [Description("备注")]
         public string Comments { get; set; }
+    }
+
+    /// <summary>
+    /// 去"重复"时候的比较器(ColumnName，即认为是相同记录)
+    /// </summary>
+    public class TableColumnNoComparer : IEqualityComparer<TableColumn>
+    {
+        public bool Equals(TableColumn x, TableColumn y)
+        {
+            return x.ColumnName == y.ColumnName;
+        }
+
+        public int GetHashCode(TableColumn obj)
+        {
+            return obj.ColumnName.GetHashCode();
+        }
     }
 }

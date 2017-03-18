@@ -48,7 +48,7 @@
                     break;
                 default:
                     {
-                        Loger.Debug("ConvertOracleConstraintType:default");
+                        Loger.Debug($"default：ConvertOracleConstraintType = {constraintType.ToUpper()}");
                     }
                     break;
             }
@@ -100,7 +100,7 @@
                     break;
                 default:
                     {
-                        Loger.Debug("ConvertOracleConstraintType:default");
+                        Loger.Debug($"default：ConvertMySqlConstraintType = {constraintType.ToUpper()}");
                     }
                     break;
             }

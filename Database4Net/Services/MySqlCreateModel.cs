@@ -9,6 +9,7 @@ using Dapper;
 using Database4Net.Models;
 using Database4Net.Util;
 using MySql.Data.MySqlClient;
+using System.Collections.Generic;
 
 namespace Database4Net.Services
 {
@@ -51,17 +52,15 @@ namespace Database4Net.Services
                 var connectionString = ConfigurationManager.ConnectionStrings["MySQLConnection"].ConnectionString;
                 using (var db = new MySqlConnection { ConnectionString = connectionString })
                 {
-                    var sql = $"select table_name 'TableName',table_comment 'TableComment' from information_schema.tables where table_schema = '{db.Database}'";
+                    var database = string.IsNullOrEmpty(db.Database) ? Regex.Match(connectionString, @"database=([^;]+)").Groups[1].Value : db.Database;
+                    var sql = $"select table_name 'TableName',table_comment 'TableComment' from information_schema.tables where table_schema = '{database}'";
                     var tables = db.Query<Table>(sql).ToArray();
-                    var sum = tables.Length * 2;
-                    action(_progressCount, sum);
+                    action(_progressCount / 2, tables.Length);
                     foreach (var table in tables)
                     {
-                        _progressCount++;
-                        action(_progressCount, sum);
-                        sql = $"select column_name 'ColumnName',column_key 'ConstraintType',data_type 'DataType',numeric_precision 'DataLength',numeric_scale 'DataScale',case when is_nullable = 'yes' then 'Y' else 'N' end 'Nullable',column_default 'DataDefault',column_comment 'Comments' from information_schema.columns where table_schema = '{db.Database}' and table_name = '{table.TableName}'";
-                        table.TableColumns = db.Query<TableColumn>(sql).ToArray();
-                        sql = $"select c.referenced_table_name 主键表名称,c.referenced_column_name 主键列名,c.table_name 外键表名称,c.column_name 外键列名,c.constraint_name 约束名,t.table_comment 表注释,r.update_rule 级联更新,r.delete_rule 级联删除 from information_schema.key_column_usage c join information_schema. tables t on t.table_name = c.table_name join information_schema.referential_constraints r on r.table_name = c.table_name and r.constraint_name = c.constraint_name and r.referenced_table_name = c.referenced_table_name where c.referenced_table_name is not null and c.table_schema = '{db.Database}' and c.table_name = '{table.TableName}'";
+                        sql = $"select column_name 'ColumnName',column_key 'ConstraintType',data_type 'DataType',numeric_precision 'DataLength',numeric_scale 'DataScale',case when is_nullable = 'yes' then 'Y' else 'N' end 'Nullable',column_default 'DataDefault',column_comment 'Comments' from information_schema.columns where table_schema = '{database}' and table_name = '{table.TableName}'";
+                        table.TableColumns = db.Query<TableColumn>(sql).Distinct(new TableColumnNoComparer()).ToArray();
+                        sql = $"select c.referenced_table_name 主键表名称,c.referenced_column_name 主键列名,c.table_name 外键表名称,c.column_name 外键列名,c.constraint_name 约束名,t.table_comment 表注释,r.update_rule 级联更新,r.delete_rule 级联删除 from information_schema.key_column_usage c join information_schema. tables t on t.table_name = c.table_name join information_schema.referential_constraints r on r.table_name = c.table_name and r.constraint_name = c.constraint_name and r.referenced_table_name = c.referenced_table_name where c.referenced_table_name is not null and c.table_schema = '{database}' and c.table_name = '{table.TableName}'";
                         var foreignKeyArr = db.Query<ForeignKey>(sql).ToArray();
                         foreach (var tableColumn in table.TableColumns)
                         {
@@ -74,15 +73,14 @@ namespace Database4Net.Services
                                 }
                             }
                         }
-                    }
-                    if (db.State == ConnectionState.Open)
-                    {
-                        db.Close();
+                        _progressCount++;
+                        action(_progressCount / 2, tables.Length);
                     }
                     db.Dispose();
                     return CreateModel(tables, () =>
                     {
-                        action(_progressCount, sum);
+                        _progressCount++;
+                        action(_progressCount / 2, tables.Length);
                     });
                 }
             }
@@ -113,6 +111,7 @@ namespace Database4Net.Services
                 Directory.CreateDirectory(_path);
             }
             var count = 0;
+            var tableList = new List<string>();
             foreach (var table in tables)
             {
                 var sb = new StringBuilder();
@@ -135,11 +134,11 @@ namespace Database4Net.Services
                         className = className.Substring(0, 1).ToUpper() + className.Substring(1).ToLower();
                     }
                 }
-                var firstLetter = className.Substring(0, 1);
-                if (firstLetter != "_" && !RegexTool.IsLetter(firstLetter))
+                while (tableList.Count(x => x.Equals(className)) > 0)
                 {
-                    className = $"_{className}";
+                    className += "_";
                 }
+                tableList.Add(className);
                 sb.Append("using System;\r\nusing System.ComponentModel.DataAnnotations;\r\nusing System.ComponentModel.DataAnnotations.Schema;\r\n\r\nnamespace ");
                 sb.Append(_space);
                 sb.Append("\r\n{\r\n");
@@ -153,227 +152,224 @@ namespace Database4Net.Services
                 sb.Append("\tpublic class ");
                 sb.Append(className);
                 sb.Append("\r\n\t{\r\n");
-                sb.Append("\t\t#region Model\r\n");
-                var order = 0;
-                foreach (var column in table.TableColumns)
+                if (table.TableColumns.Length > 0)
                 {
-                    var propertieName = BaseTool.ReplaceIllegalCharacter(column.ColumnName);
-                    if (!string.IsNullOrEmpty(propertieName))
+                    sb.Append("\t\t#region Model\r\n");
+                    var order = 0;
+                    var columnList = new List<string>();
+                    foreach (var column in table.TableColumns)
                     {
-                        if (propertieName.LastIndexOf('_') != -1)
+                        var propertieName = BaseTool.ReplaceIllegalCharacter(column.ColumnName);
+                        if (!string.IsNullOrEmpty(propertieName))
                         {
-                            foreach (var str in propertieName.Split('_'))
+                            if (propertieName.LastIndexOf('_') != -1)
                             {
-                                if (!string.IsNullOrEmpty(str))
+                                foreach (var str in propertieName.Split('_'))
                                 {
-                                    propertieName += str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
+                                    if (!string.IsNullOrEmpty(str))
+                                    {
+                                        propertieName += str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
+                                    }
                                 }
                             }
-                        }
-                        else
-                        {
-                            propertieName = propertieName.Substring(0, 1).ToUpper() + propertieName.Substring(1).ToLower();
-                        }
-                        if (propertieName == className)
-                        {
-                            propertieName = $"_{propertieName}";
-                        }
-                        else
-                        {
-                            firstLetter = propertieName.Substring(0, 1);
-                            if (firstLetter != "_" && !RegexTool.IsLetter(firstLetter))
+                            else
+                            {
+                                propertieName = propertieName.Substring(0, 1).ToUpper() + propertieName.Substring(1).ToLower();
+                            }
+                            if (propertieName == className)
                             {
                                 propertieName = $"_{propertieName}";
-                                if (propertieName == className)
-                                {
-                                    propertieName = $"_{propertieName}";
-                                }
+                            }
+                            while (columnList.Count(x => x.Equals(propertieName)) > 0)
+                            {
+                                propertieName += "_";
+                            }
+                            columnList.Add(propertieName);
+                        }
+
+                        if (!string.IsNullOrEmpty(column.Comments))
+                        {
+                            sb.Append("\t\t/// <summary>\r\n");
+                            sb.Append("\t\t/// ").Append(Regex.Replace(column.Comments, @"[\r\n]", "")).Append("\r\n");
+                            sb.Append("\t\t/// </summary>\r\n");
+                        }
+                        if (column.ConstraintType == "主键")
+                        {
+                            sb.Append("\t\t[Key, Column(\"").Append(column.ColumnName).Append("\", Order = ").Append(order).Append(")]\r\n");
+                            order++;
+                        }
+                        else
+                        {
+                            sb.Append("\t\t[Column(\"").Append(column.ColumnName).Append("\")]\r\n");
+                        }
+                        if (string.IsNullOrEmpty(column.DataType))
+                        {
+                            sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                        }
+                        else
+                        {
+                            switch (column.DataType.ToUpper())
+                            {
+                                case "VARCHAR":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "CHAR":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "BLOB":
+                                    {
+                                        sb.Append("\t\tpublic byte? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "TEXT":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "INTEGER":
+                                    {
+                                        sb.Append("\t\tpublic long? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "TINYINT":
+                                    {
+                                        sb.Append("\t\tpublic byte? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "SMALLINT":
+                                    {
+                                        sb.Append("\t\tpublic short? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "MEDIUMINT":
+                                    {
+                                        sb.Append("\t\tpublic int? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "BIT":
+                                    {
+                                        sb.Append("\t\tpublic bool? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "BIGINT":
+                                    {
+                                        sb.Append("\t\tpublic long? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "FLOAT":
+                                    {
+                                        sb.Append("\t\tpublic float? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "DOUBLE":
+                                    {
+                                        sb.Append("\t\tpublic double? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "Decimal":
+                                    {
+                                        sb.Append("\t\tpublic decimal? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "BOOLEAN":
+                                    {
+                                        sb.Append("\t\tpublic bool? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "ID":
+                                    {
+                                        sb.Append("\t\tpublic long? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "DATE":
+                                    {
+                                        sb.Append("\t\tpublic DATE? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "TIME":
+                                    {
+                                        sb.Append("\t\tpublic DateTime? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "DATETIME":
+                                    {
+                                        sb.Append("\t\tpublic DateTime? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "TIMESTAMP":
+                                    {
+                                        sb.Append("\t\tpublic DateTime? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "YEAR":
+                                    {
+                                        sb.Append("\t\tpublic DateTime? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "MONEY":
+                                    {
+                                        sb.Append("\t\tpublic decimal? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "IMAGE":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "NVARCHAR":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "JSON":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                default:
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
                             }
                         }
+                        sb.Append("\t\t\tset;\r\n");
+                        sb.Append("\t\t\tget;\r\n");
+                        sb.Append("\t\t}\r\n");
+                        sb.Append("\r\n");
+                        sb1.Append(propertieName);
+                        sb1.Append("=\" + ");
+                        sb1.Append(propertieName);
+                        sb1.Append(" + \",");
                     }
-
-                    if (!string.IsNullOrEmpty(column.Comments))
+                    if (sb1.Length >= 5)
                     {
-                        sb.Append("\t\t/// <summary>\r\n");
-                        sb.Append("\t\t/// ").Append(Regex.Replace(column.Comments, @"[\r\n]", "")).Append("\r\n");
-                        sb.Append("\t\t/// </summary>\r\n");
+                        sb1.Remove(sb1.Length - 5, 5);
                     }
-                    if (column.ConstraintType == "主键")
-                    {
-                        sb.Append("\t\t[Key, Column(\"").Append(column.ColumnName).Append("\", Order = ").Append(order).Append(")]\r\n");
-                        order++;
-                    }
-                    else
-                    {
-                        sb.Append("\t\t[Column(\"").Append(column.ColumnName).Append("\")]\r\n");
-                    }
-                    if (string.IsNullOrEmpty(column.DataType))
-                    {
-                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
-                    }
-                    else
-                    {
-                        switch (column.DataType.ToUpper())
-                        {
-                            case "VARCHAR":
-                                {
-                                    sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "CHAR":
-                                {
-                                    sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "BLOB":
-                                {
-                                    sb.Append("\t\tpublic byte? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "TEXT":
-                                {
-                                    sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "INTEGER":
-                                {
-                                    sb.Append("\t\tpublic long? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "TINYINT":
-                                {
-                                    sb.Append("\t\tpublic byte? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "SMALLINT":
-                                {
-                                    sb.Append("\t\tpublic short? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "MEDIUMINT":
-                                {
-                                    sb.Append("\t\tpublic int? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "BIT":
-                                {
-                                    sb.Append("\t\tpublic bool? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "BIGINT":
-                                {
-                                    sb.Append("\t\tpublic long? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "FLOAT":
-                                {
-                                    sb.Append("\t\tpublic float? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "DOUBLE":
-                                {
-                                    sb.Append("\t\tpublic double? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "Decimal":
-                                {
-                                    sb.Append("\t\tpublic decimal? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "BOOLEAN":
-                                {
-                                    sb.Append("\t\tpublic bool? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "ID":
-                                {
-                                    sb.Append("\t\tpublic long? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "DATE":
-                                {
-                                    sb.Append("\t\tpublic DATE? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "TIME":
-                                {
-                                    sb.Append("\t\tpublic DateTime? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "DATETIME":
-                                {
-                                    sb.Append("\t\tpublic DateTime? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "TIMESTAMP":
-                                {
-                                    sb.Append("\t\tpublic DateTime? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "YEAR":
-                                {
-                                    sb.Append("\t\tpublic DateTime? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "MONEY":
-                                {
-                                    sb.Append("\t\tpublic decimal? " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "IMAGE":
-                                {
-                                    sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "NVARCHAR":
-                                {
-                                    sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            case "JSON":
-                                {
-                                    sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                            default:
-                                {
-                                    sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
-                                }
-                                break;
-                        }
-                    }
-                    sb.Append("\t\t\tset;\r\n");
-                    sb.Append("\t\t\tget;\r\n");
-                    sb.Append("\t\t}\r\n");
+                    sb.Append("\t\tpublic override string ToString()\r\n");
+                    sb.Append("\t\t{\r\n");
+                    sb.Append("\t\t\treturn \"");
+                    sb.Append(sb1);
+                    sb.Append(";");
                     sb.Append("\r\n");
-                    sb1.Append(propertieName);
-                    sb1.Append("=\" + ");
-                    sb1.Append(propertieName);
-                    sb1.Append(" + \",");
-                }
-                if (sb1.Length >= 5)
-                {
-                    sb1.Remove(sb1.Length - 5, 5);
+                    sb.Append("\t\t}\r\n");
+                    sb.Append("\t\t#endregion Model\r\n");
                 }
                 else
                 {
-                    Loger.Debug(table.TableName);
+                    sb.Append("\r\n\r\n");
+                    Loger.Debug($"表中不包含用户可见的列：表名 = {table.TableName}");
                 }
-                sb.Append("\t\tpublic override string ToString()\r\n");
-                sb.Append("\t\t{\r\n");
-                sb.Append("\t\t\treturn \"");
-                sb.Append(sb1);
-                sb.Append(";");
-                sb.Append("\r\n");
-                sb.Append("\t\t}\r\n");
-                sb.Append("\t\t#endregion Model\r\n");
                 sb.Append("\t}\r\n").Append("}");
                 var filePath = Path.Combine(_path, $"{className}.cs");
                 if (WriteFile(filePath, sb.ToString()))
                 {
                     count++;
                 }
-                _progressCount++;
                 action();
             }
             return count;
