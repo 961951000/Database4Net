@@ -148,14 +148,13 @@ namespace Database4Net
             btnCreateModel.Enabled = true;
         }
 
-
-
         /// <summary>
         /// 生成数据库字典
         /// </summary>
         private void btnCreateDictionary_Click(object sender, EventArgs e)
         {
-            btnCreateDictionary.Enabled = false; try
+            btnCreateDictionary.Enabled = false;
+            try
             {
                 switch (cboDatabaseType.SelectedIndex)
                 {
