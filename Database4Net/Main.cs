@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Database4Net.Services;
@@ -16,6 +17,7 @@ namespace Database4Net
 
         private void FrmMain_Load(object sender, EventArgs e)
         {
+#if DEBUG
             cboDatabaseType.SelectedIndex = 0;
             var onnectionString = ConfigurationManager.ConnectionStrings["MySQLConnection"].ConnectionString;
             txtDataSource.Text = Regex.Match(onnectionString, @"server=([^;]+)").Groups[1].Value;
@@ -24,17 +26,75 @@ namespace Database4Net
             txtPassword.Text = Regex.Match(onnectionString, @"pwd=([^;]+)").Groups[1].Value;
             txtNamespace.Text = ConfigurationManager.AppSettings["Namespace"];
             txtFilePath.Text = ConfigurationManager.AppSettings["FilePath"];
+#else
+            try
+            {
+                cboDatabaseType.SelectedIndex = 0;
+                var onnectionString = ConfigurationManager.ConnectionStrings["MySQLConnection"].ConnectionString;
+                txtDataSource.Text = Regex.Match(onnectionString, @"server=([^;]+)").Groups[1].Value;
+                txtInitialCatalog.Text = Regex.Match(onnectionString, @"database=([^;]+)").Groups[1].Value;
+                txtUserId.Text = Regex.Match(onnectionString, @"uid=([^;]+)").Groups[1].Value;
+                txtPassword.Text = Regex.Match(onnectionString, @"pwd=([^;]+)").Groups[1].Value;
+                txtNamespace.Text = ConfigurationManager.AppSettings["Namespace"];
+            }
+            catch (Exception exception)
+            {
+                Loger.Error(exception);
+            }
+#endif
+
         }
 
         private void cboDatabaseType_SelectedValueChanged(object sender, EventArgs e)
         {
-            
+#if DEBUG
+            txtInitialCatalog.ReadOnly = cboDatabaseType.SelectedIndex == 2;
+            switch (cboDatabaseType.SelectedIndex)
+            {
+                case 0:
+                    {
+                        var connectionString =
+                            ConfigurationManager.ConnectionStrings["MySQLConnection"].ConnectionString;
+                        txtDataSource.Text = Regex.Match(connectionString, @"server=([^;]+)").Groups[1].Value;
+                        txtInitialCatalog.Text = Regex.Match(connectionString, @"database=([^;]+)").Groups[1].Value;
+                        txtUserId.Text = Regex.Match(connectionString, @"uid=([^;]+)").Groups[1].Value;
+                        txtPassword.Text = Regex.Match(connectionString, @"pwd=([^;]+)").Groups[1].Value;
+                    }
+                    break;
+                case 1:
+                    {
+
+                        var connectionString =
+                            ConfigurationManager.ConnectionStrings["MSSQLConnection"].ConnectionString;
+                        txtDataSource.Text = Regex.Match(connectionString, @"Data Source=([^;]+)").Groups[1].Value;
+                        txtInitialCatalog.Text =
+                            Regex.Match(connectionString, @"Initial Catalog=([^;]+)").Groups[1].Value;
+                        txtUserId.Text = Regex.Match(connectionString, @"User Id=([^;]+)").Groups[1].Value;
+                        txtPassword.Text = Regex.Match(connectionString, @"Password=([^;]+)").Groups[1].Value;
+                    }
+                    break;
+                case 2:
+                    {
+
+                        var connectionString =
+                            ConfigurationManager.ConnectionStrings["OracleConnection"].ConnectionString;
+                        txtDataSource.Text = Regex.Match(connectionString, @"Data Source=([^;]+)").Groups[1].Value;
+                        txtInitialCatalog.Text = string.Empty;
+                        txtUserId.Text = Regex.Match(connectionString, @"User Id=([^;]+)").Groups[1].Value;
+                        txtPassword.Text = Regex.Match(connectionString, @"Password=([^;]+)").Groups[1].Value;
+                    }
+                    break;
+            }
+#else
+            try
+            {
                 txtInitialCatalog.ReadOnly = cboDatabaseType.SelectedIndex == 2;
                 switch (cboDatabaseType.SelectedIndex)
                 {
                     case 0:
                         {
-                            var connectionString = ConfigurationManager.ConnectionStrings["MySQLConnection"].ConnectionString;
+                            var connectionString =
+                                ConfigurationManager.ConnectionStrings["MySQLConnection"].ConnectionString;
                             txtDataSource.Text = Regex.Match(connectionString, @"server=([^;]+)").Groups[1].Value;
                             txtInitialCatalog.Text = Regex.Match(connectionString, @"database=([^;]+)").Groups[1].Value;
                             txtUserId.Text = Regex.Match(connectionString, @"uid=([^;]+)").Groups[1].Value;
@@ -44,9 +104,11 @@ namespace Database4Net
                     case 1:
                         {
 
-                            var connectionString = ConfigurationManager.ConnectionStrings["MSSQLConnection"].ConnectionString;
+                            var connectionString =
+                                ConfigurationManager.ConnectionStrings["MSSQLConnection"].ConnectionString;
                             txtDataSource.Text = Regex.Match(connectionString, @"Data Source=([^;]+)").Groups[1].Value;
-                            txtInitialCatalog.Text = Regex.Match(connectionString, @"Initial Catalog=([^;]+)").Groups[1].Value;
+                            txtInitialCatalog.Text =
+                                Regex.Match(connectionString, @"Initial Catalog=([^;]+)").Groups[1].Value;
                             txtUserId.Text = Regex.Match(connectionString, @"User Id=([^;]+)").Groups[1].Value;
                             txtPassword.Text = Regex.Match(connectionString, @"Password=([^;]+)").Groups[1].Value;
                         }
@@ -54,7 +116,8 @@ namespace Database4Net
                     case 2:
                         {
 
-                            var connectionString = ConfigurationManager.ConnectionStrings["OracleConnection"].ConnectionString;
+                            var connectionString =
+                                ConfigurationManager.ConnectionStrings["OracleConnection"].ConnectionString;
                             txtDataSource.Text = Regex.Match(connectionString, @"Data Source=([^;]+)").Groups[1].Value;
                             txtInitialCatalog.Text = string.Empty;
                             txtUserId.Text = Regex.Match(connectionString, @"User Id=([^;]+)").Groups[1].Value;
@@ -62,15 +125,84 @@ namespace Database4Net
                         }
                         break;
                 }
-          
+            }
+            catch (Exception exception)
+            {
+                Loger.Error(exception);
+            }
+#endif
         }
         /// <summary>
         /// 生成模型
         /// </summary>
         private void btnCreateModel_Click(object sender, EventArgs e)
         {
+#if DEBUG
             btnCreateModel.Enabled = false;
-           
+            switch (cboDatabaseType.SelectedIndex)
+            {
+                case 0:
+                    {
+                        SetMySqlConnection();
+                        var item = new MySqlCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
+                        lblCreateModel.Visible = true;
+                        prgCreateModel.Visible = true;
+                        prgCreateModel.Value = 0;
+                        var count = item.Start((x, y) =>
+                        {
+                            prgCreateModel.Maximum = y;
+                            prgCreateModel.Value = x;
+                            SetPos(x);
+                        });
+                        lblCreateModel.Text = @"100%";
+                        MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
+                    }
+                    break;
+                case 1:
+                    {
+                        SetMsSqlConnection();
+                        var item = new MsSqlCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
+                        lblCreateModel.Visible = true;
+                        prgCreateModel.Visible = true;
+                        prgCreateModel.Value = 0;
+                        var count = item.Start((x, y) =>
+                        {
+                            prgCreateModel.Maximum = y;
+                            prgCreateModel.Value = x;
+                            SetPos(x);
+                        }
+                        );
+                        lblCreateModel.Text = @"100%";
+                        MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
+                    }
+                    break;
+                case 2:
+                    {
+                        SetOracleConnection();
+                        var item = new OracleCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
+                        lblCreateModel.Visible = true;
+                        prgCreateModel.Visible = true;
+                        prgCreateModel.Value = 0;
+                        var count = item.Start((x, y) =>
+                        {
+                            prgCreateModel.Maximum = y;
+                            prgCreateModel.Value = x;
+                            SetPos(x);
+                        }
+                        );
+                        lblCreateModel.Text = @"100%";
+                        MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
+                    }
+                    break;
+            }
+            lblCreateModel.Visible = false;
+            prgCreateModel.Visible = false;
+            lblCreateModel.Text = string.Empty;
+            btnCreateModel.Enabled = true;
+#else 
+            try
+            {
+                btnCreateModel.Enabled = false;
                 switch (cboDatabaseType.SelectedIndex)
                 {
                     case 0:
@@ -98,11 +230,11 @@ namespace Database4Net
                             prgCreateModel.Visible = true;
                             prgCreateModel.Value = 0;
                             var count = item.Start((x, y) =>
-                                {
-                                    prgCreateModel.Maximum = y;
-                                    prgCreateModel.Value = x;
-                                    SetPos(x);
-                                }
+                            {
+                                prgCreateModel.Maximum = y;
+                                prgCreateModel.Value = x;
+                                SetPos(x);
+                            }
                             );
                             lblCreateModel.Text = @"100%";
                             MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
@@ -116,23 +248,27 @@ namespace Database4Net
                             prgCreateModel.Visible = true;
                             prgCreateModel.Value = 0;
                             var count = item.Start((x, y) =>
-                                {
-                                    prgCreateModel.Maximum = y;
-                                    prgCreateModel.Value = x;
-                                    SetPos(x);
-                                }
+                            {
+                                prgCreateModel.Maximum = y;
+                                prgCreateModel.Value = x;
+                                SetPos(x);
+                            }
                             );
                             lblCreateModel.Text = @"100%";
                             MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
                         }
                         break;
                 }
-           
                 lblCreateModel.Visible = false;
                 prgCreateModel.Visible = false;
                 lblCreateModel.Text = string.Empty;
-            
-            btnCreateModel.Enabled = true;
+                btnCreateModel.Enabled = true;
+            }
+            catch (Exception exception)
+            {
+                Loger.Error(exception);
+            }
+#endif
         }
 
         /// <summary>
@@ -140,8 +276,70 @@ namespace Database4Net
         /// </summary>
         private void btnCreateDictionary_Click(object sender, EventArgs e)
         {
+#if DEBUG
             btnCreateDictionary.Enabled = false;
-            
+            switch (cboDatabaseType.SelectedIndex)
+            {
+                case 0:
+                    {
+                        SetMySqlConnection();
+                        var item = new MySqlCreateDictionary(ConfigurationManager.AppSettings["FilePath"]);
+                        lblCreateModel.Visible = true;
+                        prgCreateModel.Visible = true;
+                        prgCreateModel.Value = 0;
+                        var count = item.Start((x, y) =>
+                        {
+                            prgCreateModel.Maximum = y;
+                            prgCreateModel.Value = x;
+                            SetPos(x);
+                        });
+                        lblCreateModel.Text = @"100%";
+                        MessageBox.Show(count > 0 ? "操作成功！" : "操作失败，详细异常信息请查看错误日志！");
+                    }
+                    break;
+                case 1:
+                    {
+                        SetMsSqlConnection();
+                        var item = new MsSqlCreateDictionary(ConfigurationManager.AppSettings["FilePath"]);
+                        lblCreateModel.Visible = true;
+                        prgCreateModel.Visible = true;
+                        prgCreateModel.Value = 0;
+                        var count = item.Start((x, y) =>
+                        {
+                            prgCreateModel.Maximum = y;
+                            prgCreateModel.Value = x;
+                            SetPos(x);
+                        });
+                        lblCreateModel.Text = @"100%";
+                        MessageBox.Show(count > 0 ? "操作成功！" : "操作失败，详细异常信息请查看错误日志！");
+                    }
+                    break;
+                case 2:
+                    {
+                        SetOracleConnection();
+                        var item = new OracleCreateDictionary(ConfigurationManager.AppSettings["FilePath"]);
+                        lblCreateModel.Visible = true;
+                        prgCreateModel.Visible = true;
+                        prgCreateModel.Value = 0;
+                        var count = item.Start((x, y) =>
+                        {
+                            prgCreateModel.Maximum = y;
+                            prgCreateModel.Value = x;
+                            SetPos(x);
+                        });
+                        lblCreateModel.Text = @"100%";
+                        MessageBox.Show(count > 0 ? "操作成功！" : "操作失败，详细异常信息请查看错误日志！");
+                    }
+                    break;
+            }
+            lblCreateModel.Visible = false;
+            prgCreateModel.Visible = false;
+            lblCreateModel.Text = string.Empty;
+            btnCreateDictionary.Enabled = true;
+#else 
+            try
+            {
+                btnCreateDictionary.Enabled = false;
                 switch (cboDatabaseType.SelectedIndex)
                 {
                     case 0:
@@ -196,12 +394,16 @@ namespace Database4Net
                         }
                         break;
                 }
-           
                 lblCreateModel.Visible = false;
                 prgCreateModel.Visible = false;
                 lblCreateModel.Text = string.Empty;
-            
-            btnCreateDictionary.Enabled = true;
+                btnCreateDictionary.Enabled = true;
+            }
+            catch (Exception exception)
+            {
+                Loger.Error(exception);
+            }
+#endif
         }
         /// <summary>
         /// 重置MySQL连接字符串
