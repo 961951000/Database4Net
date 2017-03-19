@@ -36,9 +36,9 @@ namespace Database4Net.Services
                 sw = new StreamWriter(fs);
                 sw.WriteLine(text);
             }
-            sw?.Flush();
-            sw?.Close();
-            fs?.Close();
+            sw.Flush();
+            sw.Close();
+            fs.Close();
             return true;
         }
     }

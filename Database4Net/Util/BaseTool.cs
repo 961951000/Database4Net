@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.OleDb;
@@ -7,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
-
 namespace Database4Net.Util
 {
     /// <summary>
@@ -15,6 +15,46 @@ namespace Database4Net.Util
     /// </summary>
     public class BaseTool
     {
+        /// <summary>
+        /// 替换路径中的保留字
+        /// </summary>
+        /// <param name="path">保留字</param>
+        /// <returns>替换后的保留字</returns>
+        public static string ReservedWordsReplace(string path)
+        {
+            var reg = new Regex(@"^(?<fpath>([a-zA-Z]:\\)([\s\.\-\w]+\\)*)(?<fname>[\w]+.[\w]+)");
+            var result = reg.Match(path);
+            if (string.IsNullOrEmpty(result.Value)) { throw new ArgumentException($"无效的路径：{path}"); }
+            var fname = result.Result("${fname}");
+            var list = new List<string>
+            {
+                "CON",
+                "PRN ",
+                "AUX ",
+                "NUL ",
+            };
+            for (var i = 1; i <= 9; i++)
+            {
+                list.Add($"COM{i}");
+            }
+            var index = fname.LastIndexOf(".", StringComparison.Ordinal);
+            if (index > 0)
+            {
+                fname = list.Where(item => fname.Substring(0, index).Trim().ToUpper() == item).Aggregate(fname, (current, item) => $"_{current.Substring(0, index)}{current.Substring(index)}");
+            }
+            var arr = result.Result("${fpath}").Split('\\');
+            for (var i = 0; i < arr.Length; i++)
+            {
+                foreach (var item in list)
+                {
+                    if (arr[i].Trim().ToUpper() == item)
+                    {
+                        arr[i] = $"_{arr[i]}";
+                    }
+                }
+            }
+            return Path.Combine(string.Join("\\", arr), fname);
+        }
         /// <summary>
         /// 从参数化查询获取完整SQL
         /// </summary>

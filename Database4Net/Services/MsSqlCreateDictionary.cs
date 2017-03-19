@@ -110,17 +110,25 @@ namespace Database4Net.Services
                 }
                 db.Dispose();
                 #region 设置路径      
-                if (string.IsNullOrEmpty(_path) || !BaseTool.IsValidPath(_path))
+                if (!BaseTool.IsValidPath(_path))//替换非法目录
                 {
                     _path = AppDomain.CurrentDomain.BaseDirectory;
                 }
-                _path = Path.Combine(_path, $"{database}_mssql.xlsx");
+                _path = BaseTool.ReservedWordsReplace(Path.Combine(_path, $"{database}.xlsx"));
                 #endregion
-                return CreateDictionary(_path, tables, () =>
+                if (tables.Length < 1)
                 {
-                    _progressCount++;
-                    action(_progressCount / 2, tables.Length);
-                });
+                    Loger.Debug($"数据库中不包含用户可见的数据表：数据库名 = {database}");
+                    return 0;
+                }
+                else
+                {
+                    return CreateDictionary(_path, tables, () =>
+                    {
+                        _progressCount++;
+                        action(_progressCount / 2, tables.Length);
+                    });
+                }
             }
         }
     }

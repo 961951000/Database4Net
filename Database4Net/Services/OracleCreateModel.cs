@@ -50,6 +50,7 @@ namespace Database4Net.Services
             var connectionString = ConfigurationManager.ConnectionStrings["OracleConnection"].ConnectionString;
             using (var db = new OracleConnection { ConnectionString = connectionString })
             {
+                var database = string.IsNullOrEmpty(db.Database) ? Regex.Match(connectionString, @"User Id=([^;]+)").Groups[1].Value : db.Database;
                 var sql = "select table_name TableName,comments TableComment from user_tab_comments order by table_name";
                 var tables = db.Query<Table>(sql).ToArray();
                 action(_progressCount / 2, tables.Length);
@@ -61,11 +62,19 @@ namespace Database4Net.Services
                     action(_progressCount / 2, tables.Length);
                 }
                 db.Dispose();
-                return CreateModel(tables, () =>
+                if (tables.Length < 1)
                 {
-                    _progressCount++;
-                    action(_progressCount / 2, tables.Length);
-                });
+                    Loger.Debug($"数据库中不包含用户可见的数据表：数据库名 = {database}");
+                    return 0;
+                }
+                else
+                {
+                    return CreateModel(tables, () =>
+                    {
+                        _progressCount++;
+                        action(_progressCount / 2, tables.Length);
+                    });
+                }
             }
         }
         /// <summary>
@@ -76,16 +85,18 @@ namespace Database4Net.Services
         /// <returns>创建模型数量</returns>
         private int CreateModel(Table[] tables, Action action)
         {
+            var pathList = new List<string>();//记录文件路径防止冲突
             if (string.IsNullOrEmpty(_space))
             {
                 _space = "Default.Models";
             }
-            if (string.IsNullOrEmpty(_path) || !BaseTool.IsValidPath(_path))
+            if (!BaseTool.IsValidPath(_path))//替换非法目录
             {
-                _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models");
+                _path = AppDomain.CurrentDomain.BaseDirectory;
             }
-            var count = 0;
-            var tableList = new List<string>();
+            _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models");
+            var ret = 0;
+            var classNameList = new List<string>();//记录类名防止冲突
             foreach (var table in tables)
             {
                 var sb = new StringBuilder();
@@ -108,11 +119,11 @@ namespace Database4Net.Services
                         className = className.Substring(0, 1).ToUpper() + className.Substring(1).ToLower();
                     }
                 }
-                while (tableList.Count(x => x.Equals(className)) > 0)
+                while (classNameList.Count(x => x.Equals(className)) > 0)
                 {
                     className += "_";
                 }
-                tableList.Add(className);
+                classNameList.Add(className);
                 sb.Append("using System;\r\nusing System.ComponentModel.DataAnnotations;\r\nusing System.ComponentModel.DataAnnotations.Schema;\r\n\r\nnamespace ");
                 sb.Append(_space);
                 sb.Append("\r\n{\r\n");
@@ -129,8 +140,8 @@ namespace Database4Net.Services
                 if (table.TableColumns.Length > 0)
                 {
                     sb.Append("\t\t#region Model\r\n");
-                    var order = 0;
-                    var columnList = new List<string>();
+                    var order = 0;//记录主键数量
+                    var columnPropertieNameList = new List<string>();//记录属性名称防止冲突
                     foreach (var column in table.TableColumns)
                     {
                         var propertieName = BaseTool.ReplaceIllegalCharacter(column.ColumnName);
@@ -154,11 +165,11 @@ namespace Database4Net.Services
                             {
                                 propertieName = $"_{propertieName}";
                             }
-                            while (columnList.Count(x => x.Equals(propertieName)) > 0)
+                            while (columnPropertieNameList.Count(x => x.Equals(propertieName)) > 0)
                             {
                                 propertieName += "_";
                             }
-                            columnList.Add(propertieName);
+                            columnPropertieNameList.Add(propertieName);
                         }
                         if (!string.IsNullOrEmpty(column.Comments))
                         {
@@ -318,14 +329,19 @@ namespace Database4Net.Services
                     Loger.Debug($"表中不包含用户可见的列：表名 = {table.TableName}");
                 }
                 sb.Append("\t}\r\n").Append("}");
-                var filePath = Path.Combine(_path, $"{className}.cs");
+                var filePath = BaseTool.ReservedWordsReplace(Path.Combine(_path, $"{className}.cs"));
+                while (pathList.Count(x => filePath == x) > 0)
+                {
+                    filePath = $"_{filePath}";
+                }
+                pathList.Add(filePath);
                 if (WriteFile(filePath, sb.ToString()))
                 {
-                    count++;
+                    ret++;
                 }
                 action();
             }
-            return count;
+            return ret;
         }
     }
 }

@@ -21,8 +21,8 @@ namespace Database4Net.Services
         protected int CreateDictionary(string path, Table[] tables, Action action)
         {
 
-            var folderPath=path.Substring(0,path.LastIndexOf("\\", StringComparison.Ordinal));
-            if (!Directory.Exists(folderPath))
+            var folderPath = path.Substring(0, path.LastIndexOf("\\", StringComparison.Ordinal));
+            if (!Directory.Exists(folderPath))//目录不存在就创建
             {
                 Directory.CreateDirectory(folderPath);
             }
@@ -34,7 +34,7 @@ namespace Database4Net.Services
                 Visible = false,
                 DisplayAlerts = false
             };
-            app.Workbooks.Add(true);
+            //app.Workbooks.Add(true);
             if (File.Exists(path))
             {
                 File.Delete(path);
