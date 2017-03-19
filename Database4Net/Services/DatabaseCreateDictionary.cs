@@ -45,8 +45,8 @@ namespace Database4Net.Services
             worksheet.Name = "数据库字典汇总表";
             worksheet.Cells[1, 1] = "数据库字典汇总表";
             worksheet.Cells[2, 1] = "编号";
-            worksheet.Cells[2, 2] = "表英文名称";
-            worksheet.Cells[2, 3] = "表中文名称";
+            worksheet.Cells[2, 2] = "表名";
+            worksheet.Cells[2, 3] = "备注";
             worksheet.Cells[2, 4] = "数据说明";
             worksheet.Cells[2, 5] = "表结构描述(页号)";
             var type = typeof(TableColumn);
