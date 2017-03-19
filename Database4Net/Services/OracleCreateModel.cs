@@ -84,10 +84,6 @@ namespace Database4Net.Services
             {
                 _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models");
             }
-            if (!Directory.Exists(_path))
-            {
-                Directory.CreateDirectory(_path);
-            }
             var count = 0;
             var tableList = new List<string>();
             foreach (var table in tables)

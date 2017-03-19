@@ -20,6 +20,12 @@ namespace Database4Net.Services
         /// <returns>创建数据字典表数量</returns>
         protected int CreateDictionary(string path, Table[] tables, Action action)
         {
+
+            var folderPath=path.Substring(0,path.LastIndexOf("\\", StringComparison.Ordinal));
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
             Application app = null;
             Workbook workBook = null;
             Worksheet sheet = null;
@@ -108,8 +114,8 @@ namespace Database4Net.Services
             range.Font.Bold = true;//字体加粗
             range.Font.Size = 24;//字体大小 
             #endregion
-            sheet.SaveAs(path);
-            worksheet?.SaveAs(path);
+            sheet?.SaveAs(path);
+            worksheet.SaveAs(path);
             workBook.Close();
             app.Quit();
             GC.Collect();
