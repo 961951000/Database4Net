@@ -82,11 +82,10 @@ namespace Database4Net.Services
                     });
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Loger.Error(e);
+                throw;
             }
-            return 0;
         }
     }
 }

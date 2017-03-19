@@ -115,12 +115,12 @@ namespace Database4Net.Services
                 worksheet.SaveAs(path);
                 return tables.Length;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Loger.Error(ex);
                 Loger.Debug($"文件操作有误：文件路径 = {path}");
                 Loger.Debug($"tables.Length={tables.Length}");
                 Loger.Debug($"文件操作有误：文件路径 = {path}");
+                throw;
             }
             finally
             {
@@ -128,7 +128,6 @@ namespace Database4Net.Services
                 app.Quit();
                 GC.Collect();
             }
-            return 0;
         }
     }
 }

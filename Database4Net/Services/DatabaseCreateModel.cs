@@ -34,12 +34,12 @@ namespace Database4Net.Services
                     sw = new StreamWriter(fs);
                     sw.WriteLine(text);
                 }
-                flag = true;
+                return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Loger.Error(e);
                 Loger.Debug($"文件操作有误：文件路径 = {filePath}");
+                throw;
             }
             finally
             {
@@ -47,7 +47,6 @@ namespace Database4Net.Services
                 sw?.Close();
                 fs?.Close();
             }
-            return flag;
         }
     }
 }

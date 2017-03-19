@@ -125,11 +125,10 @@ namespace Database4Net.Services
                     });
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex);
+                throw;
             }
-            return 0;
         }
     }
 }

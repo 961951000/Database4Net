@@ -27,7 +27,7 @@ namespace Database4Net.Util
                     i++;
                     Console.WriteLine(file.FullName);
                 }
-                Console.WriteLine($"删除文件:    {i}");
+                Console.WriteLine($@"删除文件:    {i}");
             }
             catch (IOException e)
             {
