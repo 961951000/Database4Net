@@ -3,10 +3,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using Database4Net.Models;
-using Database4Net.Util;
-using Microsoft.Office.Interop.Excel;
 using System.IO;
 using Action = System.Action;
+using Microsoft.Office.Interop.Excel;
 
 namespace Database4Net.Services
 {
@@ -109,10 +108,10 @@ namespace Database4Net.Services
             range.Font.Bold = true;//字体加粗
             range.Font.Size = 24;//字体大小 
             #endregion
-            sheet?.SaveAs(path);
-            worksheet.SaveAs(path);
-            workBook?.Close();
-            app?.Quit();
+            sheet.SaveAs(path);
+            worksheet?.SaveAs(path);
+            workBook.Close();
+            app.Quit();
             GC.Collect();
             return tables.Length;
         }

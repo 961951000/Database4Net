@@ -28,8 +28,7 @@ namespace Database4Net
 
         private void cboDatabaseType_SelectedValueChanged(object sender, EventArgs e)
         {
-            try
-            {
+            
                 txtInitialCatalog.ReadOnly = cboDatabaseType.SelectedIndex == 2;
                 switch (cboDatabaseType.SelectedIndex)
                 {
@@ -63,11 +62,7 @@ namespace Database4Net
                         }
                         break;
                 }
-            }
-            catch (Exception ex)
-            {
-                Loger.Error(ex);
-            }
+          
         }
         /// <summary>
         /// 生成模型
@@ -75,8 +70,7 @@ namespace Database4Net
         private void btnCreateModel_Click(object sender, EventArgs e)
         {
             btnCreateModel.Enabled = false;
-            try
-            {
+           
                 switch (cboDatabaseType.SelectedIndex)
                 {
                     case 0:
@@ -133,18 +127,11 @@ namespace Database4Net
                         }
                         break;
                 }
-            }
-            catch (Exception ex)
-            {
-                Loger.Error(ex);
-                MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
-            }
-            finally
-            {
+           
                 lblCreateModel.Visible = false;
                 prgCreateModel.Visible = false;
                 lblCreateModel.Text = string.Empty;
-            }
+            
             btnCreateModel.Enabled = true;
         }
 
@@ -154,8 +141,7 @@ namespace Database4Net
         private void btnCreateDictionary_Click(object sender, EventArgs e)
         {
             btnCreateDictionary.Enabled = false;
-            try
-            {
+            
                 switch (cboDatabaseType.SelectedIndex)
                 {
                     case 0:
@@ -210,18 +196,11 @@ namespace Database4Net
                         }
                         break;
                 }
-            }
-            catch (Exception ex)
-            {
-                Loger.Error(ex);
-                MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
-            }
-            finally
-            {
+           
                 lblCreateModel.Visible = false;
                 prgCreateModel.Visible = false;
                 lblCreateModel.Text = string.Empty;
-            }
+            
             btnCreateDictionary.Enabled = true;
         }
         /// <summary>
