@@ -138,7 +138,7 @@ namespace Database4Net.Services
         /// <param name="tables">数据表</param>
         /// <param name="action">进度条委托</param>
         /// <returns>创建模型数量</returns>
-        private int CreateModel(Table[] tables, Action action)
+        private int CreateModel(IEnumerable<Table> tables, Action action)
         {
             var pathList = new List<string>();//记录文件路径防止冲突
             if (string.IsNullOrEmpty(_space))
