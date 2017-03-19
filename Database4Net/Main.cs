@@ -75,11 +75,11 @@ namespace Database4Net
         private void btnCreateModel_Click(object sender, EventArgs e)
         {
             btnCreateModel.Enabled = false;
-            switch (cboDatabaseType.SelectedIndex)
+            try
             {
-                case 0:
-                    {
-                        try
+                switch (cboDatabaseType.SelectedIndex)
+                {
+                    case 0:
                         {
                             SetMySqlConnection();
                             var item = new MySqlCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
@@ -95,22 +95,8 @@ namespace Database4Net
                             lblCreateModel.Text = @"100%";
                             MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
                         }
-                        catch (Exception ex)
-                        {
-                            Loger.Error(ex);
-                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
-                        }
-                        finally
-                        {
-                            lblCreateModel.Visible = false;
-                            prgCreateModel.Visible = false;
-                            lblCreateModel.Text = string.Empty;
-                        }
-                    }
-                    break;
-                case 1:
-                    {
-                        try
+                        break;
+                    case 1:
                         {
                             SetMsSqlConnection();
                             var item = new MsSqlCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
@@ -127,22 +113,8 @@ namespace Database4Net
                             lblCreateModel.Text = @"100%";
                             MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
                         }
-                        catch (Exception ex)
-                        {
-                            Loger.Error(ex);
-                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
-                        }
-                        finally
-                        {
-                            lblCreateModel.Visible = false;
-                            prgCreateModel.Visible = false;
-                            lblCreateModel.Text = string.Empty;
-                        }
-                    }
-                    break;
-                case 2:
-                    {
-                        try
+                        break;
+                    case 2:
                         {
                             SetOracleConnection();
                             var item = new OracleCreateModel(ConfigurationManager.AppSettings["FilePath"], ConfigurationManager.AppSettings["Namespace"]);
@@ -159,19 +131,19 @@ namespace Database4Net
                             lblCreateModel.Text = @"100%";
                             MessageBox.Show(count > 0 ? $"操作成功，新建{count}个模型！" : "操作失败，详细异常信息请查看错误日志！");
                         }
-                        catch (Exception ex)
-                        {
-                            Loger.Error(ex);
-                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
-                        }
-                        finally
-                        {
-                            lblCreateModel.Visible = false;
-                            prgCreateModel.Visible = false;
-                            lblCreateModel.Text = string.Empty;
-                        }
-                    }
-                    break;
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Loger.Error(ex);
+                MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
+            }
+            finally
+            {
+                lblCreateModel.Visible = false;
+                prgCreateModel.Visible = false;
+                lblCreateModel.Text = string.Empty;
             }
             btnCreateModel.Enabled = true;
         }
@@ -183,12 +155,11 @@ namespace Database4Net
         /// </summary>
         private void btnCreateDictionary_Click(object sender, EventArgs e)
         {
-            btnCreateDictionary.Enabled = false;
-            switch (cboDatabaseType.SelectedIndex)
+            btnCreateDictionary.Enabled = false; try
             {
-                case 0:
-                    {
-                        try
+                switch (cboDatabaseType.SelectedIndex)
+                {
+                    case 0:
                         {
                             SetMySqlConnection();
                             var item = new MySqlCreateDictionary(ConfigurationManager.AppSettings["FilePath"]);
@@ -204,22 +175,8 @@ namespace Database4Net
                             lblCreateModel.Text = @"100%";
                             MessageBox.Show(count > 0 ? "操作成功！" : "操作失败，详细异常信息请查看错误日志！");
                         }
-                        catch (Exception ex)
-                        {
-                            Loger.Error(ex);
-                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
-                        }
-                        finally
-                        {
-                            lblCreateModel.Visible = false;
-                            prgCreateModel.Visible = false;
-                            lblCreateModel.Text = string.Empty;
-                        }
-                    }
-                    break;
-                case 1:
-                    {
-                        try
+                        break;
+                    case 1:
                         {
                             SetMsSqlConnection();
                             var item = new MsSqlCreateDictionary(ConfigurationManager.AppSettings["FilePath"]);
@@ -235,22 +192,8 @@ namespace Database4Net
                             lblCreateModel.Text = @"100%";
                             MessageBox.Show(count > 0 ? "操作成功！" : "操作失败，详细异常信息请查看错误日志！");
                         }
-                        catch (Exception ex)
-                        {
-                            Loger.Error(ex);
-                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
-                        }
-                        finally
-                        {
-                            lblCreateModel.Visible = false;
-                            prgCreateModel.Visible = false;
-                            lblCreateModel.Text = string.Empty;
-                        }
-                    }
-                    break;
-                case 2:
-                    {
-                        try
+                        break;
+                    case 2:
                         {
                             SetOracleConnection();
                             var item = new OracleCreateDictionary(ConfigurationManager.AppSettings["FilePath"]);
@@ -266,19 +209,19 @@ namespace Database4Net
                             lblCreateModel.Text = @"100%";
                             MessageBox.Show(count > 0 ? "操作成功！" : "操作失败，详细异常信息请查看错误日志！");
                         }
-                        catch (Exception ex)
-                        {
-                            Loger.Error(ex);
-                            MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
-                        }
-                        finally
-                        {
-                            lblCreateModel.Visible = false;
-                            prgCreateModel.Visible = false;
-                            lblCreateModel.Text = string.Empty;
-                        }
-                    }
-                    break;
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Loger.Error(ex);
+                MessageBox.Show(@"操作失败，详细异常信息请查看错误日志！");
+            }
+            finally
+            {
+                lblCreateModel.Visible = false;
+                prgCreateModel.Visible = false;
+                lblCreateModel.Text = string.Empty;
             }
             btnCreateDictionary.Enabled = true;
         }
