@@ -121,7 +121,7 @@ namespace Database4Net.Services
                 }
                 while (classNameList.Count(x => x.Equals(className)) > 0)
                 {
-                    className += "_";
+                    className = $"_{className}";
                 }
                 classNameList.Add(className);
                 sb.Append("using System;\r\nusing System.ComponentModel.DataAnnotations;\r\nusing System.ComponentModel.DataAnnotations.Schema;\r\n\r\nnamespace ");
@@ -167,7 +167,7 @@ namespace Database4Net.Services
                             }
                             while (columnPropertieNameList.Count(x => x.Equals(propertieName)) > 0)
                             {
-                                propertieName += "_";
+                                propertieName = $"_{propertieName}";
                             }
                             columnPropertieNameList.Add(propertieName);
                         }
