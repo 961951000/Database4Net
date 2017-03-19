@@ -47,32 +47,25 @@ namespace Database4Net.Services
         /// <returns>创建模型数量</returns>
         public int Start(Action<int, int> action)
         {
-            try
+            var connectionString = ConfigurationManager.ConnectionStrings["OracleConnection"].ConnectionString;
+            using (var db = new OracleConnection { ConnectionString = connectionString })
             {
-                var connectionString = ConfigurationManager.ConnectionStrings["OracleConnection"].ConnectionString;
-                using (var db = new OracleConnection { ConnectionString = connectionString })
+                var sql = "select table_name TableName,comments TableComment from user_tab_comments order by table_name";
+                var tables = db.Query<Table>(sql).ToArray();
+                action(_progressCount / 2, tables.Length);
+                foreach (var table in tables)
                 {
-                    var sql = "select table_name TableName,comments TableComment from user_tab_comments order by table_name";
-                    var tables = db.Query<Table>(sql).ToArray();
+                    sql = $"select a.column_name ColumnName,a.data_type DataType,a.data_length DataLength,a.data_precision DataPrecision,a.data_scale DataScale,a.nullable Nullable,a.data_default DataDefault,b.comments Comments,d.constraint_type ConstraintType from user_tab_columns a left join user_col_comments b on a.table_name = b.table_name and a.column_name = b.column_name left join user_cons_columns c on a.table_name = c.table_name and a.column_name = c.column_name left join user_constraints d on c.constraint_name = d.constraint_name where a.table_name = '{table.TableName}' order by column_id";
+                    table.TableColumns = db.Query<TableColumn>(sql).Distinct(new TableColumnNoComparer()).ToArray();
+                    _progressCount++;
                     action(_progressCount / 2, tables.Length);
-                    foreach (var table in tables)
-                    {
-                        sql = $"select a.column_name ColumnName,a.data_type DataType,a.data_length DataLength,a.data_precision DataPrecision,a.data_scale DataScale,a.nullable Nullable,a.data_default DataDefault,b.comments Comments,d.constraint_type ConstraintType from user_tab_columns a left join user_col_comments b on a.table_name = b.table_name and a.column_name = b.column_name left join user_cons_columns c on a.table_name = c.table_name and a.column_name = c.column_name left join user_constraints d on c.constraint_name = d.constraint_name where a.table_name = '{table.TableName}' order by column_id";
-                        table.TableColumns = db.Query<TableColumn>(sql).Distinct(new TableColumnNoComparer()).ToArray();
-                        _progressCount++;
-                        action(_progressCount / 2, tables.Length);
-                    }
-                    db.Dispose();
-                    return CreateModel(tables, () =>
-                    {
-                        _progressCount++;
-                        action(_progressCount / 2, tables.Length);
-                    });
                 }
-            }
-            catch (Exception)
-            {
-                throw;
+                db.Dispose();
+                return CreateModel(tables, () =>
+                {
+                    _progressCount++;
+                    action(_progressCount / 2, tables.Length);
+                });
             }
         }
         /// <summary>
