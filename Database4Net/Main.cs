@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Database4Net.Services;
@@ -138,7 +137,7 @@ namespace Database4Net
         private void btnCreateModel_Click(object sender, EventArgs e)
         {
 #if DEBUG
-            btnCreateModel.Enabled = false;
+            Cursor = Cursors.WaitCursor;
             switch (cboDatabaseType.SelectedIndex)
             {
                 case 0:
@@ -198,7 +197,6 @@ namespace Database4Net
             lblCreateModel.Visible = false;
             prgCreateModel.Visible = false;
             lblCreateModel.Text = string.Empty;
-            btnCreateModel.Enabled = true;
 #else 
             try
             {
@@ -262,13 +260,13 @@ namespace Database4Net
                 lblCreateModel.Visible = false;
                 prgCreateModel.Visible = false;
                 lblCreateModel.Text = string.Empty;
-                btnCreateModel.Enabled = true;
             }
             catch (Exception exception)
             {
                 Loger.Error(exception);
             }
 #endif
+            Cursor = Cursors.Default;
         }
 
         /// <summary>
@@ -277,7 +275,7 @@ namespace Database4Net
         private void btnCreateDictionary_Click(object sender, EventArgs e)
         {
 #if DEBUG
-            btnCreateDictionary.Enabled = false;
+            Cursor = Cursors.WaitCursor;
             switch (cboDatabaseType.SelectedIndex)
             {
                 case 0:
@@ -335,8 +333,7 @@ namespace Database4Net
             lblCreateModel.Visible = false;
             prgCreateModel.Visible = false;
             lblCreateModel.Text = string.Empty;
-            btnCreateDictionary.Enabled = true;
-#else 
+#else
             try
             {
                 btnCreateDictionary.Enabled = false;
@@ -397,13 +394,13 @@ namespace Database4Net
                 lblCreateModel.Visible = false;
                 prgCreateModel.Visible = false;
                 lblCreateModel.Text = string.Empty;
-                btnCreateDictionary.Enabled = true;
             }
             catch (Exception exception)
             {
                 Loger.Error(exception);
             }
 #endif
+            Cursor = Cursors.Default;
         }
         /// <summary>
         /// 重置MySQL连接字符串
