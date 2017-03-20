@@ -156,23 +156,22 @@ namespace Database4Net.Services
             {
                 var sb = new StringBuilder();
                 var sb1 = new StringBuilder();
-                var className = BaseTool.ReplaceIllegalCharacter(table.TableName);
-                if (!string.IsNullOrEmpty(className))
+                var className = string.Empty;
+                if (!string.IsNullOrEmpty(table.TableName))
                 {
-                    if (className.LastIndexOf('_') != -1)
+                    if (table.TableName.LastIndexOf('_') != -1)
                     {
-                        foreach (var str in className.Split('_'))
-                        {
-                            if (!string.IsNullOrEmpty(str))
-                            {
-                                className += str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
-                            }
-                        }
+                        className = table.TableName.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(className, (current, str) => current + (str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower()));
                     }
                     else
                     {
-                        className = className.Substring(0, 1).ToUpper() + className.Substring(1).ToLower();
+                        className = className.Substring(0, 1).ToUpper() + table.TableName.Substring(1).ToLower();
                     }
+                    className = BaseTool.ReplaceIllegalCharacter(className);
+                }
+                else
+                {
+                    className = "_";
                 }
                 while (classNameList.Count(x => x.Equals(className)) > 0)
                 {
@@ -199,36 +198,32 @@ namespace Database4Net.Services
                     var columnPropertieNameList = new List<string>();//记录属性名称防止冲突
                     foreach (var column in table.TableColumns)
                     {
-                        var propertieName = BaseTool.ReplaceIllegalCharacter(column.ColumnName);
-                        if (!string.IsNullOrEmpty(propertieName))
+                        var propertieName = string.Empty;
+                        if (!string.IsNullOrEmpty(column.ColumnName))
                         {
-                            if (propertieName.LastIndexOf('_') != -1)
+                            if (column.ColumnName.LastIndexOf('_') != -1)
                             {
-                                foreach (var str in propertieName.Split('_'))
-                                {
-                                    if (!string.IsNullOrEmpty(str))
-                                    {
-                                        propertieName += str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
-                                    }
-                                }
+                                propertieName = column.ColumnName.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(propertieName, (current, str) => current + (str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower()));
                             }
                             else
                             {
-                                propertieName = propertieName.Substring(0, 1).ToUpper() + propertieName.Substring(1).ToLower();
+                                propertieName = propertieName.Substring(0, 1).ToUpper() + column.ColumnName.Substring(1).ToLower();
                             }
-                            if (propertieName == className)
-                            {
-                                propertieName = $"_{propertieName}";
-                            }
-                            else
-                            {
-                                while (columnPropertieNameList.Count(x => x.Equals(propertieName)) > 0)
-                                {
-                                    propertieName = $"_{propertieName}";
-                                }
-                                columnPropertieNameList.Add(propertieName);
-                            }
+                            propertieName = BaseTool.ReplaceIllegalCharacter(propertieName);
                         }
+                        else
+                        {
+                            propertieName = "_";
+                        }
+                        if (propertieName == className)
+                        {
+                            propertieName = $"_{propertieName}";
+                        }
+                        while (columnPropertieNameList.Count(x => x.Equals(propertieName)) > 0)
+                        {
+                            propertieName = $"_{propertieName}";
+                        }
+                        columnPropertieNameList.Add(propertieName);
                         if (!string.IsNullOrEmpty(column.Comments))
                         {
                             sb.Append("\t\t/// <summary>\r\n");

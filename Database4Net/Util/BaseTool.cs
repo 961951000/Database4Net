@@ -7,6 +7,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Security.Principal;
+using System.Text;
 using System.Text.RegularExpressions;
 namespace Database4Net.Util
 {
@@ -75,23 +76,31 @@ namespace Database4Net.Util
         /// <returns>验证结果</returns>
         public static string ReplaceIllegalCharacter(string str)
         {
-            if (string.IsNullOrEmpty(str))
+            if (string.IsNullOrEmpty(str?.Trim()))
             {
-                return string.Empty;
+                return $"_{str}";
             }
-            if (Regex.IsMatch(str, @"^[A-Za-z0-9_]+$"))
+            if (!Regex.IsMatch(str, @"^[A-Za-z0-9_]+$"))
             {
-                return str;
+                var matches = Regex.Matches(str, @"[A-Za-z0-9_]+", RegexOptions.IgnoreCase);
+                var sb = new StringBuilder();
+                foreach (Match item in matches)
+                {
+                    sb.Append(item.Value);
+                }
+                str = sb.ToString();
             }
-            char[] arr =
+            if (string.IsNullOrEmpty(str) || RegexTool.IsNumber(str.Substring(0, 1)))//标识符首字母是数字
             {
-                '`', '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '=', '+', '{', '}', '[', ']',
-                ';', '\'', ',', '.', '/', ':', '"', '<', '>', '?', '·', '！', '￥', '…', '（', '）', '—', '【', '】', '：', '”',
-                '；', '‘', '，', '。', '/', '《', '》', '？'
-            };
-            foreach (var item in arr)
+                str = $"_{str}";
+            }
+            else
             {
-                str = str.Replace(item.ToString(), "");
+                const string keyWord = "abstract|as|base|bool|break|byte|case|catch|char|checked|class|const|continue|decimal|default|delegate|do|double|else|enum|event|explicit|extern|false|finally|static|float|for|foreach|goto|if|implicit|in|in（泛型修饰符）|int|interface|internal|is|lock|long|namespace|new|null|object|operator|out|out（泛型修饰符）|override|params|private|protected|public|readonly|ref|return|sbyte|sealed|short|sizeof|stackalloc|static|string|struct|switch|this|throw|true|try|typeof|uint|ulong|unchecked|unsafe|ushort|using|virtual|void|volatile|while";
+                if (keyWord.Split('|').Any(item => str == item))
+                {
+                    str = $"_{str}";
+                }
             }
             return str;
         }
