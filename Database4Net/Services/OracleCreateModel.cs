@@ -179,7 +179,7 @@ namespace Database4Net.Services
                             sb.Append("\t\t/// <summary>\r\n");
                             sb.Append("\t\t/// ").Append(Regex.Replace(column.Comments, @"[\r\n]", "")).Append("\r\n");
                             sb.Append("\t\t/// </summary>\r\n");
-                        }                      
+                        }
                         if (string.IsNullOrEmpty(column.DataType))
                         {
                             sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
