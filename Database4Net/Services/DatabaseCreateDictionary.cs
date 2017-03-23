@@ -126,6 +126,7 @@ namespace Database4Net.Services
                     range = sheet.Range[sheet.Cells[3, 1], sheet.Cells[3, properties.Length]];//选取单元格
                     range.Merge(Missing.Value);
                     #endregion
+                    progressCount++;
                     action(progressCount / 2);
                 }
                 Loger.Debug($"操作耗时{(DateTime.Now - time).TotalSeconds}秒");
