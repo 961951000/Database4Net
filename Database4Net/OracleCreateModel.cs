@@ -43,9 +43,10 @@ namespace Database4Net.Services
         /// <summary>
         /// 启动
         /// </summary>
+        /// <param name="identifierConversion">是否开启标识符转换</param>
         /// <param name="action">进度条委托</param>
         /// <returns>创建模型数量</returns>
-        public int Start(Action<int, int> action)
+        public int Start(bool identifierConversion, Action<int, int> action)
         {
             var connectionString = ConfigurationManager.ConnectionStrings["OracleConnection"].ConnectionString;
             using (var db = new OracleConnection { ConnectionString = connectionString })
@@ -69,11 +70,22 @@ namespace Database4Net.Services
                 }
                 else
                 {
-                    return CreateModel(tables, () =>
+                    if (identifierConversion)
                     {
-                        _progressCount++;
-                        action(_progressCount / 2, tables.Length);
-                    });
+                        return CreateModelIdentifierConversion(tables, () =>
+                        {
+                            _progressCount++;
+                            action(_progressCount / 2, tables.Length);
+                        });
+                    }
+                    else
+                    {
+                        return CreateModel(tables, () =>
+                        {
+                            _progressCount++;
+                            action(_progressCount / 2, tables.Length);
+                        });
+                    }
                 }
             }
         }
@@ -160,16 +172,11 @@ namespace Database4Net.Services
                         {
                             propertieName = "_";
                         }
-                        if (propertieName == className)
-                        {
-                            propertieName = $"_{propertieName}";
-                        }
-                        while (columnPropertieNameList.Count(x => x.Equals(propertieName)) > 0)
+                        while (columnPropertieNameList.Count(x => x.Equals(propertieName)) > 0 || propertieName == className)
                         {
                             propertieName = $"_{propertieName}";
                         }
                         columnPropertieNameList.Add(propertieName);
-
                         if (!string.IsNullOrEmpty(column.Comments))
                         {
                             sb.Append("\t\t/// <summary>\r\n");
@@ -184,6 +191,223 @@ namespace Database4Net.Services
                         else
                         {
                             sb.Append("\t\t[Column(\"").Append(column.ColumnName).Append("\")]\r\n");
+                        }
+                        if (string.IsNullOrEmpty(column.DataType))
+                        {
+                            sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                        }
+                        else
+                        {
+                            switch (column.DataType.ToUpper())
+                            {
+                                case "BFILE":
+                                    {
+                                        sb.Append("\t\tpublic byte[] " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "BLOB":
+                                    {
+                                        sb.Append("\t\tpublic byte[] " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "CHAR":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "CLOB":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "DATE":
+                                    {
+                                        sb.Append("\t\tpublic DateTime? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "FLOAT":
+                                    {
+                                        sb.Append("\t\tpublic Decimal? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "INTEGER":
+                                    {
+                                        sb.Append("\t\tpublic Decimal? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "INTERVAL YEAR TO MONTH":
+                                    {
+                                        sb.Append("\t\tpublic int? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "INTERVAL DAY TO SECOND":
+                                    {
+                                        sb.Append("\t\tpublic TimeSpan? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "LONG":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "LONG RAW":
+                                    {
+                                        sb.Append("\t\tpublic byte[] " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "NCHAR":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "NCLOB":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "NUMBER":
+                                    {
+                                        sb.Append("\t\tpublic decimal? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "NVARCHAR2":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "RAW":
+                                    {
+                                        sb.Append("\t\tpublic byte[] " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "ROWID":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "TIMESTAMP":
+                                    {
+                                        sb.Append("\t\tpublic DateTime? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "timestamp":
+                                    {
+                                        sb.Append("\t\tpublic DateTime? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                case "VARCHAR2":
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                                default:
+                                    {
+                                        sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
+                            }
+                        }
+                        sb.Append("\t\t\tset;\r\n");
+                        sb.Append("\t\t\tget;\r\n");
+                        sb.Append("\t\t}\r\n");
+                        sb.Append("\r\n");
+                        sb1.Append(propertieName);
+                        sb1.Append("=\" + ");
+                        sb1.Append(propertieName);
+                        sb1.Append(" + \",");
+                    }
+                    if (sb1.Length >= 5)
+                    {
+                        sb1.Remove(sb1.Length - 5, 5);
+                    }
+                    sb.Append("\t\tpublic override string ToString()\r\n");
+                    sb.Append("\t\t{\r\n");
+                    sb.Append("\t\t\treturn \"");
+                    sb.Append(sb1);
+                    sb.Append(";");
+                    sb.Append("\r\n");
+                    sb.Append("\t\t}\r\n");
+                    sb.Append("\t\t#endregion Model\r\n");
+                }
+                else
+                {
+                    sb.Append("\r\n\r\n");
+                    Loger.Debug($"表中不包含用户可见的列：表名 = {table.TableName}");
+                }
+                sb.Append("\t}\r\n").Append("}");
+                var filePath = BaseTool.ReservedWordsReplace(Path.Combine(_path, $"{className}.cs"));
+                while (pathList.Count(x => filePath == x) > 0)
+                {
+                    filePath = $"_{filePath}";
+                }
+                pathList.Add(filePath);
+                if (WriteFile(filePath, sb.ToString()))
+                {
+                    ret++;
+                }
+                action();
+            }
+            return ret;
+        }
+        /// <summary>
+        /// 创建模型
+        /// </summary>
+        /// <param name="tables">数据表</param>
+        /// <param name="action">进度条委托</param>
+        /// <returns>创建模型数量</returns>
+        private int CreateModelIdentifierConversion(IEnumerable<Table> tables, Action action)
+        {
+            var pathList = new List<string>();//记录文件路径防止冲突
+            if (string.IsNullOrEmpty(_space))
+            {
+                _space = "Default.Models";
+            }
+            if (!BaseTool.IsValidPath(_path))//替换非法目录
+            {
+                _path = AppDomain.CurrentDomain.BaseDirectory;
+            }
+            _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models");
+            var ret = 0;
+            var classNameList = new List<string>();//记录类名防止冲突
+            foreach (var table in tables)
+            {
+                var sb = new StringBuilder();
+                var sb1 = new StringBuilder();
+                var className = !string.IsNullOrEmpty(table.TableName) ? BaseTool.ReplaceIllegalCharacter(table.TableName) : "_";
+                while (classNameList.Count(x => x.Equals(className)) > 0)
+                {
+                    className = $"_{className}";
+                }
+                classNameList.Add(className);
+                sb.Append("using System;\r\n\r\nnamespace ");
+                sb.Append(_space);
+                sb.Append("\r\n{\r\n");
+                if (!string.IsNullOrEmpty(table.TableComment))
+                {
+                    sb.Append("\t/// <summary>\r\n");
+                    sb.Append("\t/// ").Append(Regex.Replace(table.TableComment, @"[\r\n]", "")).Append("\r\n");
+                    sb.Append("\t/// </summary>\r\n");
+                }
+                sb.Append("\tpublic class ");
+                sb.Append(className);
+                sb.Append("\r\n\t{\r\n");
+                if (table.TableColumns.Length > 0)
+                {
+                    sb.Append("\t\t#region Model\r\n");
+                    var columnPropertieNameList = new List<string>();//记录属性名称防止冲突
+                    foreach (var column in table.TableColumns)
+                    {
+                        var propertieName = !string.IsNullOrEmpty(column.ColumnName) ? BaseTool.ReplaceIllegalCharacter(column.ColumnName) : "_";
+                        while (columnPropertieNameList.Count(x => x.Equals(propertieName)) > 0 || propertieName == className)
+                        {
+                            propertieName = $"_{propertieName}";
+                        }
+                        columnPropertieNameList.Add(propertieName);
+                        if (!string.IsNullOrEmpty(column.Comments))
+                        {
+                            sb.Append("\t\t/// <summary>\r\n");
+                            sb.Append("\t\t/// ").Append(Regex.Replace(column.Comments, @"[\r\n]", "")).Append("\r\n");
+                            sb.Append("\t\t/// </summary>\r\n");
                         }
                         if (string.IsNullOrEmpty(column.DataType))
                         {

@@ -71,10 +71,9 @@ namespace Database4Net.Services
                 }
                 else
                 {
-                    return CreateDictionary(_path, tables, () =>
+                    return CreateDictionary(_path, tables, (x) =>
                     {
-                        _progressCount++;
-                        action(_progressCount / 2, tables.Length);
+                        action((_progressCount + x) / 2, tables.Length);
                     });
                 }
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace Database4Net.Models
 {
@@ -12,6 +13,7 @@ namespace Database4Net.Models
         /// <summary>
         /// 表名
         /// </summary>
+        [Key]
         public string TableName { get; set; }
         /// <summary>
         /// 表备注

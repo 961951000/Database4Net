@@ -147,7 +147,7 @@ namespace Database4Net
                         lblCreateModel.Visible = true;
                         prgCreateModel.Visible = true;
                         prgCreateModel.Value = 0;
-                        var count = item.Start((x, y) =>
+                        var count = item.Start(chkIDentifierconversion.Checked, (x, y) =>
                         {
                             prgCreateModel.Maximum = y;
                             prgCreateModel.Value = x;
@@ -164,7 +164,7 @@ namespace Database4Net
                         lblCreateModel.Visible = true;
                         prgCreateModel.Visible = true;
                         prgCreateModel.Value = 0;
-                        var count = item.Start((x, y) =>
+                        var count = item.Start(chkIDentifierconversion.Checked, (x, y) =>
                         {
                             prgCreateModel.Maximum = y;
                             prgCreateModel.Value = x;
@@ -182,7 +182,7 @@ namespace Database4Net
                         lblCreateModel.Visible = true;
                         prgCreateModel.Visible = true;
                         prgCreateModel.Value = 0;
-                        var count = item.Start((x, y) =>
+                        var count = item.Start(chkIDentifierconversion.Checked, (x, y) =>
                         {
                             prgCreateModel.Maximum = y;
                             prgCreateModel.Value = x;
@@ -210,7 +210,7 @@ namespace Database4Net
                             lblCreateModel.Visible = true;
                             prgCreateModel.Visible = true;
                             prgCreateModel.Value = 0;
-                            var count = item.Start((x, y) =>
+                            var count = item.Start(chkIDentifierconversion.Checked, (x, y) =>
                             {
                                 prgCreateModel.Maximum = y;
                                 prgCreateModel.Value = x;
@@ -227,7 +227,7 @@ namespace Database4Net
                             lblCreateModel.Visible = true;
                             prgCreateModel.Visible = true;
                             prgCreateModel.Value = 0;
-                            var count = item.Start((x, y) =>
+                            var count = item.Start(chkIDentifierconversion.Checked, (x, y) =>
                             {
                                 prgCreateModel.Maximum = y;
                                 prgCreateModel.Value = x;
@@ -245,7 +245,7 @@ namespace Database4Net
                             lblCreateModel.Visible = true;
                             prgCreateModel.Visible = true;
                             prgCreateModel.Value = 0;
-                            var count = item.Start((x, y) =>
+                            var count = item.Start(chkIDentifierconversion.Checked, (x, y) =>
                             {
                                 prgCreateModel.Maximum = y;
                                 prgCreateModel.Value = x;

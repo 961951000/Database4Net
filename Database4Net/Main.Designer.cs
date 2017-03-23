@@ -44,6 +44,8 @@
             this.label7 = new System.Windows.Forms.Label();
             this.grpDatabase = new System.Windows.Forms.GroupBox();
             this.grpFile = new System.Windows.Forms.GroupBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.chkIDentifierconversion = new System.Windows.Forms.CheckBox();
             this.btnCreateModel = new System.Windows.Forms.Button();
             this.btnCreateDictionary = new System.Windows.Forms.Button();
             this.prgCreateModel = new System.Windows.Forms.ProgressBar();
@@ -192,6 +194,8 @@
             // 
             // grpFile
             // 
+            this.grpFile.Controls.Add(this.label8);
+            this.grpFile.Controls.Add(this.chkIDentifierconversion);
             this.grpFile.Controls.Add(this.label6);
             this.grpFile.Controls.Add(this.txtNamespace);
             this.grpFile.Controls.Add(this.label7);
@@ -202,6 +206,27 @@
             this.grpFile.TabIndex = 15;
             this.grpFile.TabStop = false;
             this.grpFile.Text = "文件";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(56, 171);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(65, 12);
+            this.label8.TabIndex = 15;
+            this.label8.Text = "标识符转换";
+            // 
+            // chkIDentifierconversion
+            // 
+            this.chkIDentifierconversion.AutoSize = true;
+            this.chkIDentifierconversion.Checked = true;
+            this.chkIDentifierconversion.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkIDentifierconversion.Location = new System.Drawing.Point(137, 170);
+            this.chkIDentifierconversion.Name = "chkIDentifierconversion";
+            this.chkIDentifierconversion.Size = new System.Drawing.Size(48, 16);
+            this.chkIDentifierconversion.TabIndex = 14;
+            this.chkIDentifierconversion.Text = "开启";
+            this.chkIDentifierconversion.UseVisualStyleBackColor = true;
             // 
             // btnCreateModel
             // 
@@ -290,6 +315,8 @@
         private System.Windows.Forms.Button btnCreateDictionary;
         private System.Windows.Forms.ProgressBar prgCreateModel;
         private System.Windows.Forms.Label lblCreateModel;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.CheckBox chkIDentifierconversion;
     }
 }
 
