@@ -54,7 +54,7 @@ namespace Database4Net.Services
                 var length = tables.Length;
                 while (length > 0)
                 {
-                    if (tables.Length > 200)
+                    if (length > 200)
                     {
                         app.Sheets.Add(Missing.Value, workBook.Sheets[workBook.Sheets.Count], 200);
                         progressCount += 200;
@@ -67,7 +67,6 @@ namespace Database4Net.Services
                         length = 0;
                     }
                 }
-
                 var worksheet = (Worksheet)workBook.Sheets[1];
                 worksheet.Name = "数据库字典汇总表";
                 worksheet.Cells[1, 1] = "数据库字典汇总表";
