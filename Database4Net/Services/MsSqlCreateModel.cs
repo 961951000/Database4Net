@@ -51,7 +51,7 @@ namespace Database4Net.Services
             using (var db = new SqlConnection { ConnectionString = connectionString })
             {
                 var database = string.IsNullOrEmpty(db.Database) ? Regex.Match(connectionString, @"Catalog=([^;]+)").Groups[1].Value : db.Database;
-                var tables = db.Query<Table>("select a.name TableName,b.value TableComment from sys.tables a left join sys.extended_properties b on a.object_id = b.major_id and b.minor_id = 0").ToArray();
+                var tables = db.Query<Table>("select a.name TableName,b.value TableComment from sys.tables a left join sys.extended_properties b on a.object_id = b.major_id and b.minor_id = 0 order by a.name").ToArray();
                 action(_progressCount / 2, tables.Length);
                 foreach (var table in tables)
                 {
@@ -150,7 +150,7 @@ namespace Database4Net.Services
         /// <param name="tables">数据表</param>
         /// <param name="action">进度条委托</param>
         /// <returns>创建模型数量</returns>
-        private int CreateModelIdentifierConversion(IEnumerable<Table> tables, Action action)
+        private int CreateModel(IEnumerable<Table> tables, Action action)
         {
             var pathList = new List<string>();//记录文件路径防止冲突
             if (string.IsNullOrEmpty(_space))
@@ -159,38 +159,21 @@ namespace Database4Net.Services
             }
             if (!BaseTool.IsValidPath(_path))//替换非法目录
             {
-                _path = AppDomain.CurrentDomain.BaseDirectory;
+                _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models");
             }
-            _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models");
             var ret = 0;
             var classNameList = new List<string>();//记录类名防止冲突
             foreach (var table in tables)
             {
                 var sb = new StringBuilder();
                 var sb1 = new StringBuilder();
-                var className = string.Empty;
-                if (!string.IsNullOrEmpty(table.TableName))
-                {
-                    if (table.TableName.LastIndexOf('_') != -1)
-                    {
-                        className = table.TableName.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(className, (current, str) => current + (str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower()));
-                    }
-                    else
-                    {
-                        className = className.Substring(0, 1).ToUpper() + table.TableName.Substring(1).ToLower();
-                    }
-                    className = BaseTool.ReplaceIllegalCharacter(className);
-                }
-                else
-                {
-                    className = "_";
-                }
+                var className = !string.IsNullOrEmpty(table.TableName) ? BaseTool.ReplaceIllegalCharacter(table.TableName) : "_";
                 while (classNameList.Count(x => x.Equals(className)) > 0)
                 {
                     className = $"_{className}";
                 }
                 classNameList.Add(className);
-                sb.Append("using System;\r\nusing System.ComponentModel.DataAnnotations;\r\nusing System.ComponentModel.DataAnnotations.Schema;\r\n\r\nnamespace ");
+                sb.Append("using System;\r\n\r\nnamespace ");
                 sb.Append(_space);
                 sb.Append("\r\n{\r\n");
                 if (!string.IsNullOrEmpty(table.TableComment))
@@ -199,34 +182,16 @@ namespace Database4Net.Services
                     sb.Append("\t/// ").Append(Regex.Replace(table.TableComment, @"[\r\n]", "")).Append("\r\n");
                     sb.Append("\t/// </summary>\r\n");
                 }
-                sb.Append("\t[Table(\"").Append(table.TableName).Append("\")]\r\n");  //数据标记
                 sb.Append("\tpublic class ");
                 sb.Append(className);
                 sb.Append("\r\n\t{\r\n");
                 if (table.TableColumns.Length > 0)
                 {
                     sb.Append("\t\t#region Model\r\n");
-                    var order = 0; //记录主键数量
                     var columnPropertieNameList = new List<string>();//记录属性名称防止冲突
                     foreach (var column in table.TableColumns)
                     {
-                        var propertieName = string.Empty;
-                        if (!string.IsNullOrEmpty(column.ColumnName))
-                        {
-                            if (column.ColumnName.LastIndexOf('_') != -1)
-                            {
-                                propertieName = column.ColumnName.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(propertieName, (current, str) => current + (str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower()));
-                            }
-                            else
-                            {
-                                propertieName = propertieName.Substring(0, 1).ToUpper() + column.ColumnName.Substring(1).ToLower();
-                            }
-                            propertieName = BaseTool.ReplaceIllegalCharacter(propertieName);
-                        }
-                        else
-                        {
-                            propertieName = "_";
-                        }
+                        var propertieName = !string.IsNullOrEmpty(column.ColumnName) ? BaseTool.ReplaceIllegalCharacter(column.ColumnName) : "_";
                         while (columnPropertieNameList.Count(x => x.Equals(propertieName)) > 0 || propertieName == className)
                         {
                             propertieName = $"_{propertieName}";
@@ -237,15 +202,6 @@ namespace Database4Net.Services
                             sb.Append("\t\t/// <summary>\r\n");
                             sb.Append("\t\t/// ").Append(Regex.Replace(column.Comments, @"[\r\n]", "")).Append("\r\n");
                             sb.Append("\t\t/// </summary>\r\n");
-                        }
-                        if (column.ConstraintType == "主键")
-                        {
-                            sb.Append("\t\t[Key, Column(\"").Append(column.ColumnName).Append("\", Order = ").Append(order).Append(")]\r\n");
-                            order++;
-                        }
-                        else
-                        {
-                            sb.Append("\t\t[Column(\"").Append(column.ColumnName).Append("\")]\r\n");  //数据标记
                         }
                         if (string.IsNullOrEmpty(column.DataType))
                         {
@@ -470,7 +426,7 @@ namespace Database4Net.Services
         /// <param name="tables">数据表</param>
         /// <param name="action">进度条委托</param>
         /// <returns>创建模型数量</returns>
-        private int CreateModel(IEnumerable<Table> tables, Action action)
+        private int CreateModelIdentifierConversion(IEnumerable<Table> tables, Action action)   
         {
             var pathList = new List<string>();//记录文件路径防止冲突
             if (string.IsNullOrEmpty(_space))
@@ -488,13 +444,29 @@ namespace Database4Net.Services
             {
                 var sb = new StringBuilder();
                 var sb1 = new StringBuilder();
-                var className = !string.IsNullOrEmpty(table.TableName) ? BaseTool.ReplaceIllegalCharacter(table.TableName) : "_";
+                var className = table.TableName;
+                if (!string.IsNullOrEmpty(className))
+                {
+                    if (className.LastIndexOf('_') != -1)
+                    {
+                        className = className.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(className, (current, str) => current + (str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower()));
+                    }
+                    else
+                    {
+                        className = className.Substring(0, 1).ToUpper() + className.Substring(1).ToLower();
+                    }
+                    className = BaseTool.ReplaceIllegalCharacter(className);
+                }
+                else
+                {
+                    className = "_";
+                }
                 while (classNameList.Count(x => x.Equals(className)) > 0)
                 {
                     className = $"_{className}";
                 }
                 classNameList.Add(className);
-                sb.Append("using System;\r\n\r\nnamespace ");
+                sb.Append("using System;\r\nusing System.ComponentModel.DataAnnotations;\r\nusing System.ComponentModel.DataAnnotations.Schema;\r\n\r\nnamespace ");
                 sb.Append(_space);
                 sb.Append("\r\n{\r\n");
                 if (!string.IsNullOrEmpty(table.TableComment))
@@ -514,7 +486,23 @@ namespace Database4Net.Services
                     var columnPropertieNameList = new List<string>();//记录属性名称防止冲突
                     foreach (var column in table.TableColumns)
                     {
-                        var propertieName = !string.IsNullOrEmpty(column.ColumnName) ? BaseTool.ReplaceIllegalCharacter(column.ColumnName) : "_";
+                        var propertieName = column.ColumnName;
+                        if (!string.IsNullOrEmpty(propertieName))
+                        {
+                            if (propertieName.LastIndexOf('_') != -1)
+                            {
+                                propertieName = propertieName.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(propertieName, (current, str) => current + (str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower()));
+                            }
+                            else
+                            {
+                                propertieName = propertieName.Substring(0, 1).ToUpper() + propertieName.Substring(1).ToLower();
+                            }
+                            propertieName = BaseTool.ReplaceIllegalCharacter(propertieName);
+                        }
+                        else
+                        {
+                            propertieName = "_";
+                        }
                         while (columnPropertieNameList.Count(x => x.Equals(propertieName)) > 0 || propertieName == className)
                         {
                             propertieName = $"_{propertieName}";
@@ -525,6 +513,15 @@ namespace Database4Net.Services
                             sb.Append("\t\t/// <summary>\r\n");
                             sb.Append("\t\t/// ").Append(Regex.Replace(column.Comments, @"[\r\n]", "")).Append("\r\n");
                             sb.Append("\t\t/// </summary>\r\n");
+                        }
+                        if (column.ConstraintType == "主键")
+                        {
+                            sb.Append("\t\t[Key, Column(\"").Append(column.ColumnName).Append("\", Order = ").Append(order).Append(")]\r\n");
+                            order++;
+                        }
+                        else
+                        {
+                            sb.Append("\t\t[Column(\"").Append(column.ColumnName).Append("\")]\r\n");  //数据标记
                         }
                         if (string.IsNullOrEmpty(column.DataType))
                         {

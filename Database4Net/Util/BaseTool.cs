@@ -76,7 +76,7 @@ namespace Database4Net.Util
         /// <returns>验证结果</returns>
         public static string ReplaceIllegalCharacter(string str)
         {
-            if (string.IsNullOrEmpty(str?.Trim()))
+            if (string.IsNullOrEmpty(str))
             {
                 return $"_{str}";
             }
@@ -90,7 +90,7 @@ namespace Database4Net.Util
                 }
                 str = sb.ToString();
             }
-            if (string.IsNullOrEmpty(str) || RegexTool.IsNumber(str.Substring(0, 1)))//标识符首字母是数字
+            if (string.IsNullOrEmpty(str) || RegexTool.IsInteger(str.Substring(0, 1)))//标识符首字母是数字
             {
                 str = $"_{str}";
             }

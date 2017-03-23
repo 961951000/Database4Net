@@ -42,7 +42,7 @@ namespace Database4Net.Services
             using (var db = new SqlConnection { ConnectionString = connectionString })
             {
                 var database = string.IsNullOrEmpty(db.Database) ? Regex.Match(connectionString, @"Catalog=([^;]+)").Groups[1].Value : db.Database;
-                var tables = db.Query<Table>("select a.name TableName,b.value TableComment from sys.tables a left join sys.extended_properties b on a.object_id = b.major_id and b.minor_id = 0").ToArray();
+                var tables = db.Query<Table>("select a.name TableName,b.value TableComment from sys.tables a left join sys.extended_properties b on a.object_id = b.major_id and b.minor_id = 0  order by a.name").ToArray();
                 action(_progressCount / 2, tables.Length);
                 foreach (var table in tables)
                 {

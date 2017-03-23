@@ -95,7 +95,7 @@
     <Compile Include="Services\MySqlCreateDictionary.cs" />
     <Compile Include="Services\MySqlCreateModel.cs" />
     <Compile Include="Services\OracleCreateDictionary.cs" />
-    <Compile Include="OracleCreateModel.cs" />
+    <Compile Include="Services\OracleCreateModel.cs" />
     <Compile Include="Util\BaseTool.cs" />
     <Compile Include="Util\FileTool.cs" />
     <Compile Include="Util\Loger.cs" />
