@@ -42,7 +42,7 @@ namespace Database4Net.Services
             using (var db = new OracleConnection { ConnectionString = connectionString })
             {
                 var database = string.IsNullOrEmpty(db.Database) ? Regex.Match(connectionString, @"User Id=([^;]+)").Groups[1].Value : db.Database;
-                var sql = "select table_name TableName,comments TableComment from user_tab_comments order by table_name  order by table_name";
+                var sql = "select table_name TableName,comments TableComment from user_tab_comments order by table_name";
                 var tables = db.Query<Table>(sql).ToArray();
                 action(_progressCount / 2, tables.Length);
                 foreach (var table in tables)
