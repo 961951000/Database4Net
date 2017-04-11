@@ -32,7 +32,7 @@ namespace Database4Net.Services
                 Directory.CreateDirectory(folderPath);
             }
             var oldCi = Thread.CurrentThread.CurrentCulture;//线程启动时，设置当前线程的CultureInfo与互操作库一致
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("zh-CN");
             Application app = null;
             Workbook workBook = null;
             Worksheet sheet = null;
