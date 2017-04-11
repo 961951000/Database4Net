@@ -362,7 +362,23 @@ namespace Database4Net.Services
             {
                 var sb = new StringBuilder();
                 var sb1 = new StringBuilder();
-                var className = !string.IsNullOrEmpty(table.TableName) ? BaseTool.ReplaceIllegalCharacter(table.TableName) : "_";
+                var className = string.Empty;
+                if (!string.IsNullOrEmpty(table.TableName))
+                {
+                    if (table.TableName.LastIndexOf('_') != -1)
+                    {
+                        className = table.TableName.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(className, (current, str) => current + (str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower()));
+                    }
+                    else
+                    {
+                        className = table.TableName.Substring(0, 1).ToUpper() + table.TableName.Substring(1).ToLower();
+                    }
+                    className = BaseTool.ReplaceIllegalCharacter(className);
+                }
+                else
+                {
+                    className = "_";
+                }
                 while (classNameList.Count(x => x.Equals(className)) > 0)
                 {
                     className = $"_{className}";
@@ -388,7 +404,23 @@ namespace Database4Net.Services
                     var columnPropertieNameList = new List<string>();//记录属性名称防止冲突
                     foreach (var column in table.TableColumns)
                     {
-                        var propertieName = !string.IsNullOrEmpty(column.ColumnName) ? BaseTool.ReplaceIllegalCharacter(column.ColumnName) : "_";
+                        var propertieName = string.Empty;
+                        if (!string.IsNullOrEmpty(column.ColumnName))
+                        {
+                            if (column.ColumnName.LastIndexOf('_') != -1)
+                            {
+                                propertieName = column.ColumnName.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(propertieName, (current, str) => current + (str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower()));
+                            }
+                            else
+                            {
+                                propertieName = column.ColumnName.Substring(0, 1).ToUpper() + column.ColumnName.Substring(1).ToLower();
+                            }
+                            propertieName = BaseTool.ReplaceIllegalCharacter(propertieName);
+                        }
+                        else
+                        {
+                            propertieName = "_";
+                        }
                         while (columnPropertieNameList.Count(x => x.Equals(propertieName)) > 0 || propertieName == className)
                         {
                             propertieName = $"_{propertieName}";
