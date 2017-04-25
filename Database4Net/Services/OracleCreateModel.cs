@@ -104,9 +104,8 @@ namespace Database4Net.Services
             }
             if (!BaseTool.IsValidPath(_path))//替换非法目录
             {
-                _path = AppDomain.CurrentDomain.BaseDirectory;
+                _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models");
             }
-            _path = Path.Combine(_path, "Models");
             var ret = 0;
             var classNameList = new List<string>();//记录类名防止冲突
             foreach (var table in tables)
@@ -135,7 +134,7 @@ namespace Database4Net.Services
                     className = $"_{className}";
                 }
                 classNameList.Add(className);
-                sb.Append("using System;\r\nusing System.ComponentModel.DataAnnotations;\r\nusing System.ComponentModel.DataAnnotations.Schema;\r\n\r\nnamespace ");
+                sb.Append("using System;\r\n\r\nnamespace ");
                 sb.Append(_space);
                 sb.Append("\r\n{\r\n");
                 if (!string.IsNullOrEmpty(table.TableComment))
@@ -353,9 +352,8 @@ namespace Database4Net.Services
             }
             if (!BaseTool.IsValidPath(_path))//替换非法目录
             {
-                _path = AppDomain.CurrentDomain.BaseDirectory;
+                _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models");
             }
-            _path = Path.Combine(_path, "Models");
             var ret = 0;
             var classNameList = new List<string>();//记录类名防止冲突
             foreach (var table in tables)
@@ -384,7 +382,7 @@ namespace Database4Net.Services
                     className = $"_{className}";
                 }
                 classNameList.Add(className);
-                sb.Append("using System;\r\n\r\nnamespace ");
+                sb.Append("using System;\r\nusing System.ComponentModel.DataAnnotations;\r\nusing System.ComponentModel.DataAnnotations.Schema;\r\n\r\nnamespace ");
                 sb.Append(_space);
                 sb.Append("\r\n{\r\n");
                 if (!string.IsNullOrEmpty(table.TableComment))
@@ -434,7 +432,7 @@ namespace Database4Net.Services
                         }
                         if (ModelConvertTool.ConvertOracleConstraintType(column.ConstraintType) == "主键")
                         {
-                            sb.Append("\t\t[Key, Column(\"").Append(column.ColumnName).Append("\", Order = ").Append(order).Append(")]\r\n");
+                            sb.Append("\t\t[Key, DatabaseGenerated(DatabaseGeneratedOption.Identity), Column(\"").Append(column.ColumnName).Append("\", Order = ").Append(order).Append(")]\r\n");
                             order++;
                         }
                         else

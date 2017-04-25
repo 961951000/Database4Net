@@ -159,9 +159,8 @@ namespace Database4Net.Services
             }
             if (!BaseTool.IsValidPath(_path))//替换非法目录
             {
-                _path = AppDomain.CurrentDomain.BaseDirectory;
+                _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models");
             }
-            _path = Path.Combine(_path, "Models");
             var ret = 0;
             var classNameList = new List<string>();//记录类名防止冲突
             foreach (var table in tables)
@@ -436,9 +435,8 @@ namespace Database4Net.Services
             }
             if (!BaseTool.IsValidPath(_path))//替换非法目录
             {
-                _path = AppDomain.CurrentDomain.BaseDirectory;
+                _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models");
             }
-            _path = Path.Combine(_path, "Models");
             var ret = 0;
             var classNameList = new List<string>();//记录类名防止冲突
             foreach (var table in tables)
@@ -517,7 +515,7 @@ namespace Database4Net.Services
                         }
                         if (column.ConstraintType == "主键")
                         {
-                            sb.Append("\t\t[Key, Column(\"").Append(column.ColumnName).Append("\", Order = ").Append(order).Append(")]\r\n");
+                            sb.Append("\t\t[Key, DatabaseGenerated(DatabaseGeneratedOption.Identity), Column(\"").Append(column.ColumnName).Append("\", Order = ").Append(order).Append(")]\r\n");
                             order++;
                         }
                         else
