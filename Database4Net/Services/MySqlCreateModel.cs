@@ -200,6 +200,11 @@ namespace Database4Net.Services
                         {
                             switch (column.DataType.ToUpper())
                             {
+                                case "INT":
+                                    {
+                                        sb.Append("\t\tpublic int? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
                                 case "VARCHAR":
                                     {
                                         sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
@@ -479,6 +484,11 @@ namespace Database4Net.Services
                         {
                             switch (column.DataType.ToUpper())
                             {
+                                case "INT":
+                                    {
+                                        sb.Append("\t\tpublic int? " + propertieName + "\r\n\t\t{\r\n");
+                                    }
+                                    break;
                                 case "VARCHAR":
                                     {
                                         sb.Append("\t\tpublic string " + propertieName + "\r\n\t\t{\r\n");
