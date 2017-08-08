@@ -448,11 +448,11 @@ namespace Database4Net.Services
                 {
                     if (table.TableName.LastIndexOf('_') != -1)
                     {
-                        className = table.TableName.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(className, (current, str) => current + (str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower()));
+                        className = table.TableName.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(className, (current, str) => current + str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower());
                     }
                     else
                     {
-                        className = table.TableName.Substring(0, 1).ToUpper() + table.TableName.Substring(1).ToLower();
+                        className = table.TableName.Substring(0, 1).ToUpper() + table.TableName.Substring(1);
                     }
                     className = BaseTool.ReplaceIllegalCharacter(className);
                 }
@@ -490,11 +490,11 @@ namespace Database4Net.Services
                         {
                             if (column.ColumnName.LastIndexOf('_') != -1)
                             {
-                                propertieName = column.ColumnName.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(propertieName, (current, str) => current + (str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower()));
+                                propertieName = column.ColumnName.Split('_').Where(str => !string.IsNullOrEmpty(str)).Aggregate(propertieName, (current, str) => current + str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower());
                             }
                             else
                             {
-                                propertieName = column.ColumnName.Substring(0, 1).ToUpper() + column.ColumnName.Substring(1).ToLower();
+                                propertieName = column.ColumnName.Substring(0, 1).ToUpper() + column.ColumnName.Substring(1);
                             }
                             propertieName = BaseTool.ReplaceIllegalCharacter(propertieName);
                         }
