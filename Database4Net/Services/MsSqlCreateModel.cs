@@ -59,7 +59,7 @@ namespace Database4Net.Services
                     table.TableColumns = db.Query<TableColumn>(sql).Distinct(new TableColumnNoComparer()).ToArray();
                     sql = $"SELECT col.name FROM sys.indexes idx JOIN sys.index_columns idxCol ON (idx.object_id = idxCol.object_id AND idx.index_id = idxCol.index_id AND idx.is_primary_key = 1)JOIN sys.tables tab ON (idx.object_id = tab.object_id) JOIN sys.columns col ON (idx.object_id = col.object_id AND idxCol.column_id = col.column_id) WHERE tab.name = '{table.TableName}'";
                     var primaryKeyArr = db.Query<string>(sql).ToArray();
-                    sql = $"select b.rkey 主键列id,(select name from syscolumns where colid = b.rkey and id = b.rkeyid) 主键列名,b.fkeyid 外键表id,object_name(b.fkeyid) 外键表名称,b.fkey 外键列id,(select name from syscolumns where colid = b.fkey and id = b.fkeyid) 外键列名,objectproperty(a.id, 'cnstisupdatecascade') 级联更新,objectproperty(a.id, 'cnstisdeletecascade') 级联删除 from sysobjects a join sysforeignkeys b on a.id = b.constid join sysobjects c on a.parent_obj = c.id where a.xtype = 'f' and c.xtype = 'u' and object_name(b.rkeyid) = '{table.TableName}'";
+                    sql = $"select b.rkey 主键列id,(select name from syscolumns where colid = b.rkey and id = b.rkeyid) 主键列名,b.fkeyid 外键表id,object_name(b.fkeyid) 外键表名称,b.fkey 外键列id,(select name from syscolumns where colid = b.fkey and id = b.fkeyid) 外键列名,objectproperty(a.id, 'cnstisupdatecascade') 级联更新,objectproperty(a.id, 'cnstisdeletecascade') 级联删除 from sysobjects a join sysforeignkeys b on a.id = b.constid join sysobjects c on a.parent_obj = c.id where a.xtype = 'f' and c.xtype = 'u' and object_name(b.fkeyid) = '{table.TableName}'";
                     var foreignKeyArr = db.Query<ForeignKey>(sql).ToArray();
                     sql = $"select maincol.name from sys.foreign_keys fk join sys.all_objects osub on (fk.parent_object_id = osub.object_id)join sys.all_objects omain on (fk.referenced_object_id = omain.object_id)join sys.foreign_key_columns fkcols on (fk.object_id = fkcols.constraint_object_id)join sys.columns subcol on (osub.object_id = subcol.object_id and fkcols.parent_column_id = subcol.column_id)join sys.columns maincol on (omain.object_id = maincol.object_id and fkcols.referenced_column_id = maincol.column_id) where osub.name = '{table.TableName}' or maincol.name = '{table.TableName}'";
                     var uniqueArr = db.Query<string>(sql).ToArray();
@@ -71,45 +71,44 @@ namespace Database4Net.Services
                         {
                             tableColumn.DataScale = string.Empty;
                         }
-                        var count = 0;
+                        var flag = true;
                         foreach (var item in primaryKeyArr)
                         {
                             if (tableColumn.ColumnName == item)
                             {
                                 tableColumn.ConstraintType = "主键";
-                                count++;
+                                flag = false;
                             }
                         }
-                        if (count > 0)
+                        if (flag)
                         {
                             foreach (var item in foreignKeyArr)
                             {
                                 if (tableColumn.ColumnName == item.外键列名)
                                 {
                                     tableColumn.ConstraintType = $"外键（主键表名称：{item.主键表名称}；主键列名：{item.主键列名}）";
-                                    count++;
+                                    flag = false;
                                 }
                             }
                         }
-                        if (count > 0)
+                        if (flag)
                         {
                             foreach (var item in uniqueArr)
                             {
                                 if (tableColumn.ColumnName == item)
                                 {
                                     tableColumn.ConstraintType = "唯一键";
-                                    count++;
+                                    flag = false;
                                 }
                             }
                         }
-                        if (count > 0)
+                        if (flag)
                         {
                             foreach (var item in checkArr)
                             {
                                 if (tableColumn.ColumnName == item)
                                 {
                                     tableColumn.ConstraintType = "检查";
-                                    count++;
                                 }
                             }
                         }
