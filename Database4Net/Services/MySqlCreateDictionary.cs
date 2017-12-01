@@ -38,7 +38,7 @@ namespace Database4Net.Services
         /// <returns>创建字典表数量</returns>
         public int Start(Action<int, int> action)
         {
-            var connectionString = ConfigurationManager.ConnectionStrings["MySQLConnection"].ConnectionString;
+            var connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
             using (var db = new MySqlConnection { ConnectionString = connectionString })
             {
                 var database = string.IsNullOrEmpty(db.Database) ? Regex.Match(connectionString, @"database=([^;]+)").Groups[1].Value : db.Database;

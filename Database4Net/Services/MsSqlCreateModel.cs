@@ -47,7 +47,7 @@ namespace Database4Net.Services
         /// <returns>创建模型数量</returns>
         public int Start(bool identifierConversion, Action<int, int> action)
         {
-            var connectionString = ConfigurationManager.ConnectionStrings["MSSQLConnection"].ConnectionString;
+            var connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
             using (var db = new SqlConnection { ConnectionString = connectionString })
             {
                 var database = string.IsNullOrEmpty(db.Database) ? Regex.Match(connectionString, @"Catalog=([^;]+)").Groups[1].Value : db.Database;

@@ -48,7 +48,7 @@ namespace Database4Net.Services
         /// <returns>创建模型数量</returns>
         public int Start(bool identifierConversion, Action<int, int> action)
         {
-            var connectionString = ConfigurationManager.ConnectionStrings["OracleConnection"].ConnectionString;
+            var connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
             using (var db = new OracleConnection { ConnectionString = connectionString })
             {
                 var database = string.IsNullOrEmpty(db.Database) ? Regex.Match(connectionString, @"User Id=([^;]+)").Groups[1].Value : db.Database;
